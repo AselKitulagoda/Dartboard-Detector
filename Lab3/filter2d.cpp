@@ -62,7 +62,7 @@ void GaussianBlur(cv::Mat &input, int size, cv::Mat &blurredOutput)
 	for( int m = -kernelRadiusX; m <= kernelRadiusX; m++ ) {
 	  for( int n = -kernelRadiusY; n <= kernelRadiusY; n++ )
            kernel.at<double>(m+ kernelRadiusX, n+ kernelRadiusY) = (double) 1.0/(size*size);
-
+			
        }
 
 	cv::Mat paddedInput;

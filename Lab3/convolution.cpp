@@ -32,7 +32,7 @@ int main( int argc, char** argv )
  cvtColor( image, gray_image, CV_BGR2GRAY );
 
  Mat carBlurred;
- GaussianBlur(gray_image,7,carBlurred);
+ GaussianBlur(gray_image,5,carBlurred);
 
  imwrite( "blur.jpg", carBlurred );
 
@@ -44,8 +44,8 @@ Point minLoc;
 Point maxLoc;
 minMaxLoc(sharpenedImage,&minVal,&maxVal,&minLoc,&maxLoc);
 std :: cout << "Max val = \n" << maxVal << "\n\n";
-for (int i=0;i<3;i++){
-GaussianBlur(sharpenedImage,7,carBlurred);	
+for (int i=0;i<5;i++){
+GaussianBlur(sharpenedImage,5,carBlurred);	
 sharpenedImage = 2 * sharpenedImage - carBlurred;
 }
 cv::normalize(sharpenedImage,sharpenedImage,0,255,cv::NORM_MINMAX);
