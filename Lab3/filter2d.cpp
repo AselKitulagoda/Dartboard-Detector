@@ -33,7 +33,7 @@ int main( int argc, char** argv )
  Mat carBlurred;
  GaussianBlur(gray_image,23,carBlurred);
 
- imwrite( "blur.jpg", carBlurred );
+ imwrite( "filter2d.jpg", carBlurred );
 
  return 0;
 }
@@ -74,28 +74,23 @@ void GaussianBlur(cv::Mat &input, int size, cv::Mat &blurredOutput)
 	for ( int i = 0; i < input.rows; i++ )
 	{	
 		for( int j = 0; j < input.cols; j++ )
-		{
-			double sum = 0.0;
-			for( int m = -kernelRadiusX; m <= kernelRadiusX; m++ )
-			{
-				for( int n = -kernelRadiusY; n <= kernelRadiusY; n++ )
-				{
-					// find the correct indices we are using
-					int imagex = i + m + kernelRadiusX;
-					int imagey = j + n + kernelRadiusY;
-					int kernelx = m + kernelRadiusX;
-					int kernely = n + kernelRadiusY;
+		{	
+			int pixel_values[9] = {(int) input.at<uchar>(i - 1, j - 1),
+										  (int) input.at<uchar>(i - 1, j),
+										  (int) input.at<uchar>(i - 1, j + 1),
+										  (int) input.at<uchar>(i, j - 1),
+										  (int) input.at<uchar>(i, j),
+										  (int) input.at<uchar>(i, j + 1),
+										  (int) input.at<uchar>(i + 1, j - 1),
+										  (int) input.at<uchar>(i + 1, j),
+										  (int) input.at<uchar>(i + 1, j + 1)};
 
-					// get the values from the padded image and the kernel
-					int imageval = ( int ) paddedInput.at<uchar>( imagex, imagey );
-					double kernalval = kernel.at<double>( kernelx, kernely );
+			std::sort(pixel_values, pixel_values+9);
+			int median_index = sizeof(pixel_values)/2;
+			int median = pixel_values[median_index];
 
-					// do the multiplication
-					sum += imageval * kernalval;							
-				}
-			}
 			// set the output value as the sum of the convolution
-			blurredOutput.at<uchar>(i, j) = (uchar) sum;
+			blurredOutput.at<uchar>(i, j) = (uchar) median;
 		}
 	}
 }
