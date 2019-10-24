@@ -71,9 +71,9 @@ void GaussianBlur(cv::Mat &input, int size, cv::Mat &blurredOutput)
 		cv::BORDER_REPLICATE );
 
 	// now we can do the convoltion
-	for ( int i = 0; i < input.rows; i++ )
+	for ( int i = 1; i < input.rows - 1; i++ )
 	{	
-		for( int j = 0; j < input.cols; j++ )
+		for( int j = 1; j < input.cols - 1; j++ )
 		{	
 			int pixel_values[9] = {(int) input.at<uchar>(i - 1, j - 1),
 										  (int) input.at<uchar>(i - 1, j),
@@ -85,8 +85,10 @@ void GaussianBlur(cv::Mat &input, int size, cv::Mat &blurredOutput)
 										  (int) input.at<uchar>(i + 1, j),
 										  (int) input.at<uchar>(i + 1, j + 1)};
 
-			std::sort(pixel_values, pixel_values+9);
-			int median_index = sizeof(pixel_values)/2;
+			int n = sizeof(pixel_values)/sizeof(pixel_values[0]); 
+			std::sort(pixel_values, pixel_values + n);
+
+			int median_index = 9/2;
 			int median = pixel_values[median_index];
 
 			// set the output value as the sum of the convolution
