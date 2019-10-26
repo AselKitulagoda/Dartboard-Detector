@@ -38,10 +38,15 @@ int main( int argc, char** argv )
   Mat gray_image;
   cvtColor( image, gray_image, CV_BGR2GRAY );
 
+  Mat coinBlurred;
+  GaussianBlur(gray_image, 10, coinBlurred);
+
+  imwrite( "blur.jpg", coinBlurred );
+
   Mat image_dx(gray_image.size(), CV_32FC1);
-	Mat image_dy(gray_image.size(), CV_32FC1);
-	Mat image_mag(gray_image.size(), CV_32FC1);
-	Mat image_dir(gray_image.size(), CV_32FC1);
+  Mat image_dy(gray_image.size(), CV_32FC1);
+  Mat image_mag(gray_image.size(), CV_32FC1);
+  Mat image_dir(gray_image.size(), CV_32FC1);
 
   sobel(gray_image, image_dx, image_dy, image_mag, image_dir);
 
@@ -64,12 +69,12 @@ void sobel(cv::Mat &input, cv::Mat &output_dx, cv::Mat &output_dy, cv::Mat &outp
   Mat dy_kernel = dx_kernel.t();
 
   // we need to create a padded version of the input
-	// or there will be border effects
-	int kernelRadiusX = ( dx_kernel.size[0] - 1 ) / 2;
-	int kernelRadiusY = ( dx_kernel.size[1] - 1 ) / 2;
+  // or there will be border effects
+  int kernelRadiusX = ( dx_kernel.size[0] - 1 ) / 2;
+  int kernelRadiusY = ( dx_kernel.size[1] - 1 ) / 2;
 
   cv::Mat paddedInput;
-	cv::copyMakeBorder( input, paddedInput, 
+  cv::copyMakeBorder( input, paddedInput, 
 		kernelRadiusX, kernelRadiusX, kernelRadiusY, kernelRadiusY,
 		cv::BORDER_REPLICATE );
 
@@ -102,16 +107,16 @@ void sobel(cv::Mat &input, cv::Mat &output_dx, cv::Mat &output_dy, cv::Mat &outp
           }
         }
       // set the output value as the sum of the convolution
-			output_dx.at<float>(i, j) = sum_x;
-			output_dy.at<float>(i, j) = sum_y;
-			output_mag.at<float>(i, j) = sqrt(pow(sum_x, 2) + pow(sum_y, 2));
-			output_dir.at<float>(i, j) = atan((sum_x)/(sum_y));
+	  output_dx.at<float>(i, j) = sum_x;
+ 	  output_dy.at<float>(i, j) = sum_y;
+	  output_mag.at<float>(i, j) = sqrt(pow(sum_x, 2) + pow(sum_y, 2));
+	  output_dir.at<float>(i, j) = atan((sum_x)/(sum_y));
       }
     }
   imwrite( "dx.jpg", output_dx );
-	imwrite( "dy.jpg", output_dy );
-	imwrite( "mag.jpg", output_mag );
-	imwrite( "dir.jpg", output_dir );
+  imwrite( "dy.jpg", output_dy );
+  imwrite( "mag.jpg", output_mag );
+  imwrite( "dir.jpg", output_dir );
 }
 
 void GaussianBlur(cv::Mat &input, int size, cv::Mat &blurredOutput)
