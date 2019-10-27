@@ -3,7 +3,9 @@
 #include <opencv/cv.h>        //you may need to
 #include <opencv/highgui.h>   //adjust import locations
 #include <opencv/cxcore.h>    //depending on your machine setup
+#include <math.h>
 
+#define PI 3.14159265
 
 using namespace cv;
 
@@ -37,11 +39,6 @@ int main( int argc, char** argv )
   // CONVERT COLOUR, BLUR AND SAVE
   Mat gray_image;
   cvtColor( image, gray_image, CV_BGR2GRAY );
-
-  Mat coinBlurred;
-  GaussianBlur(gray_image, 10, coinBlurred);
-
-  imwrite( "blur.jpg", coinBlurred );
 
   Mat image_dx(gray_image.size(), CV_32FC1);
   Mat image_dy(gray_image.size(), CV_32FC1);
@@ -110,9 +107,13 @@ void sobel(cv::Mat &input, cv::Mat &output_dx, cv::Mat &output_dy, cv::Mat &outp
 	  output_dx.at<float>(i, j) = sum_x;
  	  output_dy.at<float>(i, j) = sum_y;
 	  output_mag.at<float>(i, j) = sqrt(pow(sum_x, 2) + pow(sum_y, 2));
-	  output_dir.at<float>(i, j) = atan((sum_x)/(sum_y));
+	  output_dir.at<float>(i, j) = atan((sum_x)/(sum_y)) * 180/PI;
       }
     }
+    cv::normalize(output_dx, output_dx, 0, 255, cv::NORM_MINMAX);
+    cv::normalize(output_dy, output_dy, 0, 255, cv::NORM_MINMAX);
+    cv::normalize(output_mag, output_mag, 0, 255, cv::NORM_MINMAX);
+    cv::normalize(output_dir, output_dir, 0, 255, cv::NORM_MINMAX);
   imwrite( "dx.jpg", output_dx );
   imwrite( "dy.jpg", output_dy );
   imwrite( "mag.jpg", output_mag );

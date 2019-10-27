@@ -20,14 +20,14 @@ int main()
         }
     }
 
-    // 5x5
-    for(int i=0; i<5; i++)
-    {
-        for(int j=0; j<5; j++)
-        {
-            kernel.at<uchar>(i, j) = 1;
-        }
-    }
+    // // 5x5
+    // for(int i=0; i<5; i++)
+    // {
+    //     for(int j=0; j<5; j++)
+    //     {
+    //         kernel.at<uchar>(i, j) = 1;
+    //     }
+    // }
 
     // Convoluting the Image
     for(int i=1; i<image.rows - 1; i++)
