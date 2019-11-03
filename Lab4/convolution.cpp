@@ -7,11 +7,6 @@
 
 using namespace cv;
 
-void GaussianBlur(
-	cv::Mat &input, 
-	int size,
-	cv::Mat &blurredOutput);
-
 void sobel(
   cv::Mat &input,
   cv::Mat &output_dx,
@@ -71,7 +66,7 @@ void sobel(cv::Mat &input, cv::Mat &output_dx, cv::Mat &output_dy, cv::Mat &outp
             output_dx.at<float>(i, j) = pixelX;
             output_dy.at<float>(i, j) = pixelY;
             output_mag.at<float>(i, j) = sqrt(pixelX*pixelX + pixelY*pixelY);
-            output_dir.at<float>(i, j) = atan2(pixelX, pixelY);
+            output_dir.at<float>(i, j) = atan2(pixelY, pixelX);
         }
     }
 
