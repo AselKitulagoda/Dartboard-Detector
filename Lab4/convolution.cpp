@@ -5,8 +5,6 @@
 #include <opencv/cxcore.h>    //depending on your machine setup
 #include <math.h>
 
-#define PI 3.14159265
-
 using namespace cv;
 
 void GaussianBlur(
@@ -39,11 +37,11 @@ int main( int argc, char** argv )
   // CONVERT COLOUR, BLUR AND SAVE
   Mat gray_image;
   cvtColor( image, gray_image, CV_BGR2GRAY );
-
-  Mat image_dx(gray_image.size(), CV_32FC1);
-  Mat image_dy(gray_image.size(), CV_32FC1);
-  Mat image_mag(gray_image.size(), CV_32FC1);
-  Mat image_dir(gray_image.size(), CV_32FC1);
+  
+  Mat image_dx(gray_image.rows, gray_image.cols, CV_32FC1, Scalar(0));
+  Mat image_dy(gray_image.rows, gray_image.cols, CV_32FC1, Scalar(0));
+  Mat image_mag(gray_image.rows, gray_image.cols, CV_32FC1, Scalar(0));
+  Mat image_dir(gray_image.rows, gray_image.cols, CV_32FC1, Scalar(0));
 
   sobel(gray_image, image_dx, image_dy, image_mag, image_dir);
 
@@ -52,127 +50,41 @@ int main( int argc, char** argv )
 
 void sobel(cv::Mat &input, cv::Mat &output_dx, cv::Mat &output_dy, cv::Mat &output_mag, cv::Mat &output_dir)
 {
-  Mat dx_kernel = cv::Mat(3, 3, CV_32FC1);
-  dx_kernel.at<float>(0, 0) = -1;
-  dx_kernel.at<float>(0, 1) = 0;
-  dx_kernel.at<float>(0, 2) = -1;
-  dx_kernel.at<float>(1, 0) = -2;
-  dx_kernel.at<float>(1, 1) = 0;
-  dx_kernel.at<float>(1, 2) = 2;
-  dx_kernel.at<float>(2, 0) = -1;
-  dx_kernel.at<float>(2, 1) = 0;
-  dx_kernel.at<float>(2, 2) = 1;
+  Mat dx_kernel = (Mat_<int>(3, 3) << -1, 0, 1, -2, 0, 2, -1, 0, 1);
 
   Mat dy_kernel = dx_kernel.t();
 
-  // we need to create a padded version of the input
-  // or there will be border effects
-  int kernelRadiusX = ( dx_kernel.size[0] - 1 ) / 2;
-  int kernelRadiusY = ( dx_kernel.size[1] - 1 ) / 2;
-
-  cv::Mat paddedInput;
-  cv::copyMakeBorder( input, paddedInput, 
-		kernelRadiusX, kernelRadiusX, kernelRadiusY, kernelRadiusY,
-		cv::BORDER_REPLICATE );
-
-    // now we can do the convolution
-    for(int i=0; i<input.rows; i++)
+    for(int i=1; i<input.rows - 1; i++)
     {
-      for(int j=0; j<input.cols; j++)
-      {
-        float sum_x = 0.0;
-        float sum_y = 0.0;
-
-        for(int m=-kernelRadiusX; m<=kernelRadiusX; m++)
+        for(int j=1; j<input.cols - 1; j++)
         {
-          for(int n=-kernelRadiusY; n<=kernelRadiusY; n++)
-          {
-            // find the correct indices we are using
-            int imagex = i + m + kernelRadiusX;
-            int imagey = j + n + kernelRadiusY;
-            int kernelx = m + kernelRadiusX;
-            int kernely = n + kernelRadiusY;
-
-            // get the values from the padded image and the kernel
-					  int imageval = ( int ) paddedInput.at<uchar>( imagex, imagey );
-            float kernelvalX = dx_kernel.at<float>( kernelx, kernely );
-					  float kernelvalY = dy_kernel.at<float>( kernelx, kernely );
-
-            // do the multiplication
-            sum_x += imageval * kernelvalX;
-            sum_y += imageval * kernelvalY;
-          }
+            float pixelX = 0;
+            float pixelY = 0;
+            for(int x=-1; x<=1; x++)
+            {
+                for(int y=-1; y<=1; y++)
+                {
+                    pixelX += input.at<uchar>(i-x, j-y) * dx_kernel.at<int>(x+1, y+1);
+                    pixelY += input.at<uchar>(i-x, j-y) * dy_kernel.at<int>(x+1, y+1);
+                }
+            }
+            output_dx.at<float>(i, j) = pixelX;
+            output_dy.at<float>(i, j) = pixelY;
+            output_mag.at<float>(i, j) = sqrt(pixelX*pixelX + pixelY*pixelY);
+            output_dir.at<float>(i, j) = atan2(pixelX, pixelY);
         }
-      // set the output value as the sum of the convolution
-	  output_dx.at<float>(i, j) = sum_x;
- 	  output_dy.at<float>(i, j) = sum_y;
-	  output_mag.at<float>(i, j) = sqrt(pow(sum_x, 2) + pow(sum_y, 2));
-	  output_dir.at<float>(i, j) = atan((sum_x)/(sum_y)) * 180/PI;
-      }
     }
-    cv::normalize(output_dx, output_dx, 0, 255, cv::NORM_MINMAX);
-    cv::normalize(output_dy, output_dy, 0, 255, cv::NORM_MINMAX);
-    cv::normalize(output_mag, output_mag, 0, 255, cv::NORM_MINMAX);
-    cv::normalize(output_dir, output_dir, 0, 255, cv::NORM_MINMAX);
-  imwrite( "dx.jpg", output_dx );
-  imwrite( "dy.jpg", output_dy );
-  imwrite( "mag.jpg", output_mag );
-  imwrite( "dir.jpg", output_dir );
-}
 
-void GaussianBlur(cv::Mat &input, int size, cv::Mat &blurredOutput)
-{
-	// intialise the output using the input
-	blurredOutput.create(input.size(), input.type());
-
-	// create the Gaussian kernel in 1D 
-	cv::Mat kX = cv::getGaussianKernel(size, -1);
-	cv::Mat kY = cv::getGaussianKernel(size, -1);
-	
-	// make it 2D multiply one by the transpose of the other
-	cv::Mat kernel = kX * kY.t();
-
-	//CREATING A DIFFERENT IMAGE kernel WILL BE NEEDED
-	//TO PERFORM OPERATIONS OTHER THAN GUASSIAN BLUR!!!
-
-	// we need to create a padded version of the input
-	// or there will be border effects
-	int kernelRadiusX = ( kernel.size[0] - 1 ) / 2;
-	int kernelRadiusY = ( kernel.size[1] - 1 ) / 2;
-
-	cv::Mat paddedInput;
-	cv::copyMakeBorder( input, paddedInput, 
-		kernelRadiusX, kernelRadiusX, kernelRadiusY, kernelRadiusY,
-		cv::BORDER_REPLICATE );
-
-	// now we can do the convolution
-	for ( int i = 0; i < input.rows; i++ )
-	{	
-		for( int j = 0; j < input.cols; j++ )
-		{
-			double sum = 0.0;
-			for( int m = -kernelRadiusX; m <= kernelRadiusX; m++ )
-			{
-				for( int n = -kernelRadiusY; n <= kernelRadiusY; n++ )
-				{
-					// find the correct indices we are using
-					int imagex = i + m + kernelRadiusX;
-					int imagey = j + n + kernelRadiusY;
-					int kernelx = m + kernelRadiusX;
-					int kernely = n + kernelRadiusY;
-
-					// get the values from the padded image and the kernel
-					int imageval = ( int ) paddedInput.at<uchar>( imagex, imagey );
-					double kernalval = kernel.at<double>( kernelx, kernely );
-
-					// do the multiplication
-					sum += imageval * kernalval;							
-				}
-			}
-			// set the output value as the sum of the convolution
-			blurredOutput.at<uchar>(i, j) = (uchar) sum;
-		
-		}
-	}
-
+    Mat final_dx(output_dx.size(), CV_32FC1);
+    Mat final_dy(output_dy.size(), CV_32FC1);
+    Mat final_mag(output_mag.size(), CV_32FC1);
+    Mat final_dir(output_dir.size(), CV_32FC1);
+    cv::normalize(output_dx, final_dx, 0, 255, cv::NORM_MINMAX);
+    cv::normalize(output_dy, final_dy, 0, 255, cv::NORM_MINMAX);
+    cv::normalize(output_mag, final_mag, 0, 255, cv::NORM_MINMAX);
+    cv::normalize(output_dir, final_dir, 0, 255, cv::NORM_MINMAX);
+  imwrite( "dx.jpg", final_dx );
+  imwrite( "dy.jpg", final_dy );
+  imwrite( "mag.jpg", final_mag );
+  imwrite( "dir.jpg", final_dir );
 }
