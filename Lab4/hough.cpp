@@ -1,16 +1,80 @@
 // header inclusion
 #include <stdio.h>
+#include <stdlib.h>
 #include <opencv/cv.h>        //you may need to
 #include <opencv/highgui.h>   //adjust import locations
 #include <opencv/cxcore.h>    //depending on your machine setup
 #include <math.h>
 
+#define min_radius 20
+#define max_radius 100
+
 using namespace cv;
+
+int ***malloc3dArray(int dim1, int dim2, int dim3)
+{
+    int i, j, k;
+    int ***array = (int ***) malloc(dim1 * sizeof(int **));
+
+    for (i = 0; i < dim1; i++) {
+        array[i] = (int **) malloc(dim2 * sizeof(int *));
+	for (j = 0; j < dim2; j++) {
+  	    array[i][j] = (int *) malloc(dim3 * sizeof(int));
+	}
+
+    }
+    return array;
+}
 
 void sobel(
   cv::Mat &input,
   cv::Mat &output_mag,
   cv::Mat &output_dir);
+
+Mat hough(
+    cv::Mat magnitude_img,
+    cv::Mat direction_img
+);
+
+Mat hough(cv::Mat magnitude_img, cv::Mat direction_img)
+{
+    int center_x = magnitude_img.rows;
+    int center_y = magnitude_img.cols;
+    int radius = max_radius - min_radius + 1;
+    int ***accumulator = malloc3dArray(center_x, center_y, radius);
+
+    for(int x=0; x<magnitude_img.rows; x++)
+    {
+        for(int y=0; y<magnitude_img.cols; y++)
+        {
+            if(magnitude_img.at<uchar> == 255)
+            {
+                for(int r = min_radius, r < max_radius; r++)
+                {   
+                    int x0, y0;
+
+                    // Handling +
+                    x0 = x + r*std::cos(direction_img.at<float>(x, y));
+                    y0 = y + r*std::sin(direction_img.at<float>(x, y));
+
+                    if(x0 >= 0 && y0 >= 0 && x0 < magnitude_img.rows && y0 < magnitude_img.cols)
+                    {
+                        accumulator[x][y][r] += 1;
+                    }
+
+                    // Handling -
+                    x0 = x - r*std::cos(direction_img.at<float>(x, y));
+                    y0 = y - r*std::sin(direction_img.at<float>(x, y));
+
+                    if(x0 >= 0 && y0 >= 0 && x0 < magnitude_img.rows && y0 < magnitude_img.cols)
+                    {
+                        accumulator[x][y][r] += 1;
+                    }
+                }
+            }
+        }
+    }
+}
 
 Mat threshold(Mat input, int value)
 {
@@ -34,7 +98,6 @@ Mat threshold(Mat input, int value)
 
 int main( int argc, char** argv )
 {
-
   // LOADING THE IMAGE
   char* imageName = argv[1];
 
