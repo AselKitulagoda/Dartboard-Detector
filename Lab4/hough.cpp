@@ -26,57 +26,17 @@ int ***malloc3dArray(int dim1, int dim2, int dim3)
     return array;
 }
 
-void sobel(
+Mat sobel(
   cv::Mat &input,
   cv::Mat &output_mag,
   cv::Mat &output_dir);
 
-Mat hough(
+Mat hough_transform(
     cv::Mat magnitude_img,
     cv::Mat direction_img
 );
 
-Mat hough(cv::Mat magnitude_img, cv::Mat direction_img)
-{
-    int center_x = magnitude_img.rows;
-    int center_y = magnitude_img.cols;
-    int radius = max_radius - min_radius + 1;
-    int ***accumulator = malloc3dArray(center_x, center_y, radius);
-
-    for(int x=0; x<magnitude_img.rows; x++)
-    {
-        for(int y=0; y<magnitude_img.cols; y++)
-        {
-            if(magnitude_img.at<uchar> == 255)
-            {
-                for(int r = min_radius, r < max_radius; r++)
-                {   
-                    int x0, y0;
-
-                    // Handling +
-                    x0 = x + r*std::cos(direction_img.at<float>(x, y));
-                    y0 = y + r*std::sin(direction_img.at<float>(x, y));
-
-                    if(x0 >= 0 && y0 >= 0 && x0 < magnitude_img.rows && y0 < magnitude_img.cols)
-                    {
-                        accumulator[x][y][r] += 1;
-                    }
-
-                    // Handling -
-                    x0 = x - r*std::cos(direction_img.at<float>(x, y));
-                    y0 = y - r*std::sin(direction_img.at<float>(x, y));
-
-                    if(x0 >= 0 && y0 >= 0 && x0 < magnitude_img.rows && y0 < magnitude_img.cols)
-                    {
-                        accumulator[x][y][r] += 1;
-                    }
-                }
-            }
-        }
-    }
-}
-
-Mat threshold(Mat input, int value)
+Mat thresholdd(Mat input, int value)
 {
     Mat output = Mat(input.rows, input.cols, CV_8UC1, Scalar(0));
     for(int i=0; i<input.rows; i++)
@@ -94,6 +54,75 @@ Mat threshold(Mat input, int value)
         }
     }
     return output;
+}
+
+Mat hough_transform(cv::Mat magnitude_img, cv::Mat direction_img)
+{
+    int center_x = magnitude_img.rows;
+    int center_y = magnitude_img.cols;
+    int radius = 2*(max_radius - min_radius);
+    int ***accumulator = malloc3dArray(center_x, center_y, radius);
+
+    for(int x=0; x<center_x; x++)
+    {
+        for(int y=0; y<center_y; y++)
+        {
+            for(int z=0; z<radius; z++)
+            {
+                accumulator[x][y][z] = 0;
+            }
+        }
+    }
+
+    for(int x=0; x<magnitude_img.rows; x++)
+    {
+        for(int y=0; y<magnitude_img.cols; y++)
+        {
+            if(magnitude_img.at<uchar>(x, y) == 255)
+            {
+                for(int r = 0; r < radius/2; r++)
+                {   
+                    int x0, y0;
+                    int temp_r = r + min_radius;
+                    // Handling +
+                    x0 = x + temp_r*std::sin(direction_img.at<float>(x, y));
+                    y0 = y + temp_r*std::cos(direction_img.at<float>(x, y));
+
+                    if(x0 >= 0 && y0 >= 0 && x0 < magnitude_img.rows && y0 < magnitude_img.cols)
+                    {
+                        accumulator[x0][y0][r] += 1;
+                    }
+
+                    // Handling -
+                    x0 = x - temp_r*std::sin(direction_img.at<float>(x, y));
+                    y0 = y - temp_r*std::cos(direction_img.at<float>(x, y));
+
+                    if(x0 >= 0 && y0 >= 0 && x0 < magnitude_img.rows && y0 < magnitude_img.cols)
+                    {
+                        accumulator[x0][y0][r+radius/2] += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    Mat hough(magnitude_img.rows, magnitude_img.cols, CV_32FC1, Scalar(0));
+    for(int x=0; x<magnitude_img.rows; x++)
+    {
+        for(int y=0; y<magnitude_img.cols; y++)
+        {
+            for(int r=0; r<radius; r++)
+            {
+                hough.at<float>(x, y) += accumulator[x][y][r];
+            }
+        }
+    }
+
+
+    Mat final_hough(magnitude_img.rows, magnitude_img.cols, CV_8UC1, Scalar(0));
+    cv::normalize(hough, final_hough, 0, 255, NORM_MINMAX);
+
+    return final_hough;
 }
 
 int main( int argc, char** argv )
@@ -117,18 +146,28 @@ int main( int argc, char** argv )
   Mat image_mag(gray_image.rows, gray_image.cols, CV_32FC1, Scalar(0));
   Mat image_dir(gray_image.rows, gray_image.cols, CV_32FC1, Scalar(0));
 
-  sobel(gray_image, image_mag, image_dir);
+  Mat unnormalised_dir = sobel(gray_image, image_mag, image_dir);
 
   Mat magnitude_img = imread( "mag.jpg", 0 );
-  Mat direction_img = imread( "dir.jpg", 0 );  
+//   Mat direction_img = imread( "dir.jpg", 0 );  
 
-  Mat thresholded = threshold(magnitude_img, 75);
-  imwrite("thresholded.jpg", thresholded);
+  Mat thresholded = thresholdd(magnitude_img, 60);
+  cv::imwrite("thresholded.jpg", thresholded);
+  
+  Mat hough = hough_transform(thresholded, unnormalised_dir);
+  cv::imwrite("hough.jpg", hough);
+
+  Mat new_hough = imread("hough.jpg", 0);
+
+  Mat thresholded_hough = thresholdd(new_hough, 60);
+  cv::imwrite("thresholded_hough.jpg", thresholded_hough);
+
+//   Mat recognised(thresholded)
 
   return 0;
 }
 
-void sobel(cv::Mat &input, cv::Mat &output_mag, cv::Mat &output_dir)
+Mat sobel(cv::Mat &input, cv::Mat &output_mag, cv::Mat &output_dir)
 {
   Mat dx_kernel = (Mat_<int>(3, 3) << -1, 0, 1, -2, 0, 2, -1, 0, 1);
 
@@ -157,6 +196,7 @@ void sobel(cv::Mat &input, cv::Mat &output_mag, cv::Mat &output_dir)
     Mat final_dir(output_dir.size(), CV_32FC1);
     cv::normalize(output_mag, final_mag, 0, 255, cv::NORM_MINMAX);
     cv::normalize(output_dir, final_dir, 0, 255, cv::NORM_MINMAX);
-  imwrite( "mag.jpg", final_mag );
-  imwrite( "dir.jpg", final_dir );
+  cv::imwrite( "mag.jpg", final_mag );
+  cv::imwrite( "dir.jpg", final_dir );
+  return output_dir;
 }
