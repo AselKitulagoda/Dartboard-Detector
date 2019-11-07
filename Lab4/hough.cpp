@@ -62,12 +62,14 @@ Mat hough_transform(cv::Mat magnitude_img, cv::Mat direction_img)
     int center_y = magnitude_img.cols;
     int radius = 2*(max_radius - min_radius);
     int ***accumulator = malloc3dArray(center_x, center_y, radius);
+    // int ***accumulator = malloc3dArray(center_x, center_y, max_radius);
 
     for(int x=0; x<center_x; x++)
     {
         for(int y=0; y<center_y; y++)
         {
             for(int z=0; z<radius; z++)
+            // for(int z=0; z<max_radius; z++)
             {
                 accumulator[x][y][z] = 0;
             }
@@ -81,12 +83,15 @@ Mat hough_transform(cv::Mat magnitude_img, cv::Mat direction_img)
             if(magnitude_img.at<uchar>(x, y) == 255)
             {
                 for(int r = 0; r < radius/2; r++)
+                // for(int r = min_radius; r < max_radius; r++)
                 {   
                     int x0, y0;
                     int temp_r = r + min_radius;
                     // Handling +
                     x0 = x + temp_r*std::sin(direction_img.at<float>(x, y));
                     y0 = y + temp_r*std::cos(direction_img.at<float>(x, y));
+                    // x0 = x + r*std::sin(direction_img.at<float>(x, y));
+                    // y0 = y + r*std::cos(direction_img.at<float>(x, y));
 
                     if(x0 >= 0 && y0 >= 0 && x0 < magnitude_img.rows && y0 < magnitude_img.cols)
                     {
@@ -96,10 +101,13 @@ Mat hough_transform(cv::Mat magnitude_img, cv::Mat direction_img)
                     // Handling -
                     x0 = x - temp_r*std::sin(direction_img.at<float>(x, y));
                     y0 = y - temp_r*std::cos(direction_img.at<float>(x, y));
+                    // x0 = x - r*std::sin(direction_img.at<float>(x, y));
+                    // y0 = y - r*std::cos(direction_img.at<float>(x, y));
 
                     if(x0 >= 0 && y0 >= 0 && x0 < magnitude_img.rows && y0 < magnitude_img.cols)
                     {
                         accumulator[x0][y0][r+radius/2] += 1;
+                        // accumulator[x0][y0][r] += 1;
                     }
                 }
             }
@@ -112,6 +120,7 @@ Mat hough_transform(cv::Mat magnitude_img, cv::Mat direction_img)
         for(int y=0; y<magnitude_img.cols; y++)
         {
             for(int r=0; r<radius; r++)
+            // for(int r=0; r<max_radius; r++)
             {
                 hough.at<float>(x, y) += accumulator[x][y][r];
             }
@@ -161,7 +170,7 @@ int main( int argc, char** argv )
 
   Mat thresholded_hough = thresholdd(new_hough, 60);
   cv::imwrite("thresholded_hough.jpg", thresholded_hough);
-
+  
 //   Mat recognised(thresholded)
 
   return 0;
