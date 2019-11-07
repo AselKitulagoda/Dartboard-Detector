@@ -56,7 +56,7 @@ Mat thresholdd(Mat input, int value)
     return output;
 }
 
-Mat hough_transform(cv::Mat magnitude_img, cv::Mat direction_img)
+Mat hough_transform(cv::Mat original_img, cv::Mat magnitude_img, cv::Mat direction_img)
 {
     int center_x = magnitude_img.rows;
     int center_y = magnitude_img.cols;
@@ -104,6 +104,7 @@ Mat hough_transform(cv::Mat magnitude_img, cv::Mat direction_img)
             }
         }
     }
+    // acc = accumulator;
 
     Mat hough(magnitude_img.rows, magnitude_img.cols, CV_32FC1, Scalar(0));
     for(int x=0; x<magnitude_img.rows; x++)
@@ -120,6 +121,37 @@ Mat hough_transform(cv::Mat magnitude_img, cv::Mat direction_img)
 
     Mat final_hough(magnitude_img.rows, magnitude_img.cols, CV_8UC1, Scalar(0));
     cv::normalize(hough, final_hough, 0, 255, NORM_MINMAX);
+
+    Mat new_hough = imread("hough.jpg", 0);
+
+    Mat thresholded_hough = thresholdd(new_hough, 20);
+    cv::imwrite("thresholded_hough.jpg", thresholded_hough);
+
+    Mat circle_image = original_img;
+    for(int a=0; a<thresholded_hough.rows; a++)
+    {
+        for(int b=0; b<thresholded_hough.cols; b++)
+        {   
+            if(thresholded_hough.at<uchar>(a, b) == 255)
+            {
+                int argmax = 0;
+                int maxval = 0;
+                for(int c=0; c<max_radius; c++)
+                {
+                    if(accumulator[a][b][c] > maxval)
+                    {
+                        maxval = accumulator[a][b][c];
+                        argmax = c;
+                    }
+                }
+                if(accumulator[a][b][argmax] > 15)
+                {
+                    cv::circle(circle_image, Point(b, a), argmax, Scalar(0, 0, 255), 2);
+                }
+            }
+        }
+    }
+    cv::imwrite("circle.jpg", circle_image);
 
     return final_hough;
 }
@@ -149,17 +181,13 @@ int main( int argc, char** argv )
 
   Mat magnitude_img = imread( "mag.jpg", 0 );
 //   Mat direction_img = imread( "dir.jpg", 0 );  
+//   int ***acc = malloc3dArray(magnitude_img.rows, magnitude_img.cols, max_radius);
 
   Mat thresholded = thresholdd(magnitude_img, 70);
   cv::imwrite("thresholded.jpg", thresholded);
   
-  Mat hough = hough_transform(thresholded, unnormalised_dir);
+  Mat hough = hough_transform(image, thresholded, unnormalised_dir);
   cv::imwrite("hough.jpg", hough);
-
-  Mat new_hough = imread("hough.jpg", 0);
-
-  Mat thresholded_hough = thresholdd(new_hough, 70);
-  cv::imwrite("thresholded_hough.jpg", thresholded_hough);
   
 //   Mat recognised(thresholded)
 
