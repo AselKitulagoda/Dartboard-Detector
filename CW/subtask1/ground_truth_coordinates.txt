@@ -1,0 +1,27 @@
+dart15
+	cv::rectangle(frame, Point(74, 141), Point(123, 208), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(375, 115), Point(411, 184), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(540, 138), Point(596, 203), Scalar(0, 0, 255), 2);
+
+dart14
+	cv::rectangle(frame, Point(482, 238), Point(547, 305), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(738, 210), Point(815, 283), Scalar(0, 0, 255), 2);
+
+dart13
+	cv::rectangle(frame, Point(427, 146), Point(513, 232), Scalar(0, 0, 255), 2);
+
+dart5
+	cv::rectangle(frame, Point(69, 142), Point(119, 193), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(58, 260), Point(113, 310), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(198, 229), Point(247, 274), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(256, 174), Point(300, 216), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(297, 254), Point(344, 299), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(386, 196), Point(436, 239), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(437, 247), Point(481, 292), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(519, 187), Point(566, 229), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(565, 258), Point(613, 306), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(651, 195), Point(699, 238), Scalar(0, 0, 255), 2);
+	cv::rectangle(frame, Point(651, 195), Point(699, 238), Scalar(0, 0, 255), 2);
+
+dart4
+	cv::rectangle(frame, Point(69, 142), Point(119, 193), Scalar(0, 0, 255), 2);
