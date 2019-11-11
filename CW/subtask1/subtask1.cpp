@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <string.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>		  
@@ -157,18 +158,19 @@ void f1_score()
 
 	float actual_hits = 0;
 
-	std::vector<Rect>::iterator g;
-	std::vector<Rect>::iterator d;
-
-	for (d = detected.begin(); d != detected.end(); ++d)
+	for (int d = 0; d < detected.size(); ++d)
 	{
-		for (g = ground.begin(); g != ground.end(); ++g)
-		{
-			if ((*g & *d) == *g)
+		for (int g = 0; g < ground.size(); ++g)
+		{	
+			float _intersection = (ground[g] & detected[d]).area();
+			float _union = (ground[g] | detected[d]).area();
+
+			float iou = _intersection/_union;
+			if(iou > 0.01)
 			{
 				actual_hits += 1;
-				continue;
 			}
+
 		}
 	}
 	float tpr = actual_hits / ground.size();
@@ -179,5 +181,5 @@ void f1_score()
 	std::cout << "Detected Faces: " << detected.size() << std::endl;
 	std::cout << "Actual Hits: " << actual_hits << std::endl;
 	std::cout << "TPR: " << tpr << std::endl;
-	//std::cout << "F1-Score: " << std::to_string(f1) << std::endl;
+	std::cout << "F1-Score: " << f1 << std::endl;
 }
