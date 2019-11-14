@@ -26,7 +26,7 @@ std::vector<Rect> ground_faces(int n);
 void f1_score();
 
 /** Global variables */
-String cascade_name = "frontalface.xml";
+String cascade_name = "/home/ks17226/Documents/ComputerVision/CW/frontalface.xml";
 CascadeClassifier cascade;
 
 
@@ -166,14 +166,16 @@ void f1_score()
 			float _union = (ground[g] | detected[d]).area();
 
 			float iou = _intersection/_union;
-			if(iou > 0.01)
+			if(iou > 0.4)
 			{
 				actual_hits += 1;
 			}
-
+			std::cout << "IOU: " << iou << std::endl;
 		}
 	}
 	float tpr = actual_hits / ground.size();
+	float fpr = 1 - tpr;
+	float fnr = actual_hits - ground.size();
 	float precision = actual_hits / detected.size();
 	float f1 = 2 * tpr * precision / (precision + tpr);
 
@@ -181,5 +183,7 @@ void f1_score()
 	std::cout << "Detected Faces: " << detected.size() << std::endl;
 	std::cout << "Actual Hits: " << actual_hits << std::endl;
 	std::cout << "TPR: " << tpr << std::endl;
+	std::cout << "FPR: " << fpr << std::endl;
+	std::cout << "FNR: " << fnr << std::endl;
 	std::cout << "F1-Score: " << f1 << std::endl;
 }

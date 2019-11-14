@@ -1,0 +1,61 @@
+Larger the value of IOU, more the overlap and better the resemblance.
+
+THRESHOLD = 0.5
+
+dart4.jpg
+    Actual Faces: 1
+    Detected Faces: 15
+    Actual Hits: 1
+    TPR: 1
+    FPR: 0
+    FNR: 0
+    F1-Score: 0.125
+
+dart5.jpg
+    Actual Faces: 1
+    Detected Faces: 12
+    Actual Hits: 1
+    TPR: 1
+    FPR: 0
+    FNR: 0
+    F1-Score: 0.153846
+
+dart13.jpg
+    IOU: 0.0635167
+    IOU: 0.166712
+    IOU: 0.109351
+    IOU: 0.367991
+    IOU: 0
+    IOU: 0
+    IOU: 0.0926887
+    IOU: 0
+    IOU: 0.44238
+    IOU: 0.400212
+    Actual Faces: 1
+    Detected Faces: 10
+    Actual Hits: 0
+    TPR: 0
+    FPR: 1
+    FNR: -1
+    F1-Score: -nan
+
+dart14.jpg
+    Actual Faces: 2
+    Detected Faces: 37
+    Actual Hits: 1
+    TPR: 0.5
+    FPR: 0.5
+    FNR: -1
+    F1-Score: 0.0512821
+
+dart15.jpg
+    Actual Faces: 1
+    Detected Faces: 3
+    Actual Hits: 1
+    TPR: 1
+    FPR: 0
+    FNR: 0
+    F1-Score: 0.5
+
+
+
