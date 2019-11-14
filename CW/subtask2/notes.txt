@@ -21,23 +21,13 @@ dart5.jpg
     F1-Score: 0.153846
 
 dart13.jpg
-    IOU: 0.0635167
-    IOU: 0.166712
-    IOU: 0.109351
-    IOU: 0.367991
-    IOU: 0
-    IOU: 0
-    IOU: 0.0926887
-    IOU: 0
-    IOU: 0.44238
-    IOU: 0.400212
     Actual Faces: 1
     Detected Faces: 10
-    Actual Hits: 0
-    TPR: 0
-    FPR: 1
-    FNR: -1
-    F1-Score: -nan
+    Actual Hits: 2
+    TPR: 2
+    FPR: -1
+    FNR: 1
+    F1-Score: 0.363636
 
 dart14.jpg
     Actual Faces: 2
