@@ -45,7 +45,7 @@ int main(int argc, const char** argv)
 	f1_score();
 
 	// 4. Save Result Image
-	imwrite("cascade_detected/dart12_detected.jpg", frame);
+	imwrite("cascade_detected/dart10_detected.jpg", frame);
 
 	return 0;
 }
@@ -150,6 +150,72 @@ std::vector<Rect> detected_darts(int n) {
 		result.push_back(Rect(224, 181, 146, 146));
 		result.push_back(Rect(171, 151, 219, 219));
 		break;
+	case 8: result.push_back(Rect(256, 444, 53, 53));
+		result.push_back(Rect(227, 447, 59, 59));
+		result.push_back(Rect(498, 515, 55, 55));
+		result.push_back(Rect(183, 638, 52, 52));
+		result.push_back(Rect(266, 669, 52, 52));
+		result.push_back(Rect(348, 684, 58, 58));
+		result.push_back(Rect(240, 702, 52, 52));
+		result.push_back(Rect(659, 203, 67, 67));
+		result.push_back(Rect(863, 234, 82, 82));
+		result.push_back(Rect(520, 540, 63, 63));
+		result.push_back(Rect(275, 551, 62, 62));
+		result.push_back(Rect(696, 594, 60, 60));
+		result.push_back(Rect(209, 602, 61,61));
+		result.push_back(Rect(232, 630, 60, 60));
+		result.push_back(Rect(54, 229, 67, 67));
+		result.push_back(Rect(62, 581, 63, 63));
+		result.push_back(Rect(195, 680, 65, 65));
+		result.push_back(Rect(566, 169, 69, 69));
+		result.push_back(Rect(310, 585, 76, 76));
+		result.push_back(Rect(326, 595, 76, 76));
+		result.push_back(Rect(33, 255, 88, 88));
+		result.push_back(Rect(30, 354, 80, 80));
+		result.push_back(Rect(311, 394, 86, 86));
+		result.push_back(Rect(245, 558, 88, 88));
+		result.push_back(Rect(237, 672, 87, 87));
+		result.push_back(Rect(37, 518, 102, 102));
+		result.push_back(Rect(43, 194, 118, 118));
+		result.push_back(Rect(799, 533, 142, 142));
+		result.push_back(Rect(655, 118, 148, 148));
+		result.push_back(Rect(782, 220, 176, 176));
+		result.push_back(Rect(24, 204, 163, 163));
+		result.push_back(Rect(284, 390, 171, 171));
+		break;
+	case 10: result.push_back(Rect(459, 54, 66, 66));
+		result.push_back(Rect(905, 125, 62, 62));
+		result.push_back(Rect(561, 307, 54, 54));
+		result.push_back(Rect(134, 348, 52, 52));
+		result.push_back(Rect(79, 355, 52, 52));
+		result.push_back(Rect(557, 477, 58, 58));
+		result.push_back(Rect(89, 516, 55, 55));
+		result.push_back(Rect(48, 529, 52, 52));
+		result.push_back(Rect(383, 564, 55, 55));
+		result.push_back(Rect(949, 614, 52, 52));
+		result.push_back(Rect(942, 637, 54, 54));
+		result.push_back(Rect(834, 656, 61, 61));
+		result.push_back(Rect(770, 658, 60, 60));
+		result.push_back(Rect(556, 670, 52, 52));
+		result.push_back(Rect(742, 666, 55, 55));
+		result.push_back(Rect(571, 94, 81, 81));
+		result.push_back(Rect(95, 543, 62, 62));
+		result.push_back(Rect(585, 660, 61, 61));
+		result.push_back(Rect(48, 215, 91, 91));
+		result.push_back(Rect(196, 470, 66, 66));
+		result.push_back(Rect(772, 639, 65, 65));
+		result.push_back(Rect(122, 532, 69, 69));
+		result.push_back(Rect(442, 67, 101, 101));
+		result.push_back(Rect(573, 110, 102, 102));
+		result.push_back(Rect(167, 515, 80, 80));
+		result.push_back(Rect(703, 622, 76, 76));
+		result.push_back(Rect(450, 496, 92, 92));
+		result.push_back(Rect(59, 48, 158, 158));
+		result.push_back(Rect(519, 134, 123, 123));
+		result.push_back(Rect(22, 110, 149, 149));
+		result.push_back(Rect(778, 56, 172, 172));
+		result.push_back(Rect(386, 468, 180, 180));
+		break;
 	case 9: result.push_back(Rect(105, 369, 58, 58));
 		result.push_back(Rect(92, 408, 54, 54));
 		result.push_back(Rect(143, 258, 80, 80));
@@ -250,13 +316,13 @@ std::vector<Rect> ground_darts(int n) {
 	case 10: result.push_back(Rect(91, 103, (188 - 91), (214 - 103)));
 			result.push_back(Rect(585, 129, (638 - 585), (212 - 129)));
 			result.push_back(Rect(916, 152, (952 - 916), (212 - 152))); break; 
-	case 11: result.push_back(Rect(175, 105, (232 - 175), (176 - 105))); break; 
-	case 12: result.push_back(Rect(158, 77, (214 - 158), (212 - 77))); break; 
-	case 13: result.push_back(Rect(276, 120, (401 - 276), (253 - 120))); break;
+	case 11: result.push_back(Rect(168, 92, (241 - 168), (154 - 92))); break; 
+	case 12: result.push_back(Rect(140, 93, (241 - 140), (209 - 93))); break; 
+	case 13: result.push_back(Rect(287, 140, (402 - 287), (249 - 140))); break;
 	case 14: result.push_back(Rect(121, 101, (247 - 121), (227 - 101)));
 		result.push_back(Rect(989, 96, (1110 - 989), (218 - 96)));
 		break;
-	case 15: result.push_back(Rect(157, 57, (285 - 157), (190 - 57))); break;
+	case 15: result.push_back(Rect(155, 57, (290 - 155), (199 - 57))); break;
 	default: return result;
 	}
 	return result;
@@ -293,37 +359,37 @@ void detectAndDisplay(Mat frame)
 
 void f1_score()
 {
-	// std::vector<Rect> detected = detected_darts(0);
-	// std::vector<Rect> ground = ground_darts(0);
+	std::vector<Rect> detected = detected_darts(15);
+	std::vector<Rect> ground = ground_darts(15);
 
-	// float actual_hits = 0;
+	float actual_hits = 0;
 
-	// for (int d = 0; d < detected.size(); ++d)
-	// {
-	// 	for (int g = 0; g < ground.size(); ++g)
-	// 	{	
-	// 		float _intersection = (ground[g] & detected[d]).area();
-	// 		float _union = (ground[g] | detected[d]).area();
+	for (int d = 0; d < detected.size(); ++d)
+	{
+		for (int g = 0; g < ground.size(); ++g)
+		{	
+			float _intersection = (ground[g] & detected[d]).area();
+			float _union = (ground[g] | detected[d]).area();
 
-	// 		float iou = _intersection/_union;
-	// 		if(iou > 0.4)
-	// 		{
-	// 			actual_hits += 1;
-	// 		}
-	// 		std::cout << "IOU: " << iou << std::endl;
-	// 	}
-	// }
-	// float tpr = actual_hits / ground.size();
-	// float fpr = 1 - tpr;
-	// float fnr = actual_hits - ground.size();
-	// float precision = actual_hits / detected.size();
-	// float f1 = 2 * tpr * precision / (precision + tpr);
+			float iou = _intersection/_union;
+			if(iou > 0.59)
+			{
+				actual_hits += 1;
+			}
+			std::cout << "IOU: " << iou << std::endl;
+		}
+	}
+	float tpr = actual_hits / ground.size();
+	float fpr = 1 - tpr;
+	float fnr = actual_hits - ground.size();
+	float precision = actual_hits / detected.size();
+	float f1 = 2 * tpr * precision / (precision + tpr);
 
-	// std::cout << "Actual Faces: " << ground.size() << std::endl;
-	// std::cout << "Detected Faces: " << detected.size() << std::endl;
-	// std::cout << "Actual Hits: " << actual_hits << std::endl;
-	// std::cout << "TPR: " << tpr << std::endl;
-	// std::cout << "FPR: " << fpr << std::endl;
-	// std::cout << "FNR: " << fnr << std::endl;
-	// std::cout << "F1-Score: " << f1 << std::endl;
+	std::cout << "Actual Faces: " << ground.size() << std::endl;
+	std::cout << "Detected Faces: " << detected.size() << std::endl;
+	std::cout << "Actual Hits: " << actual_hits << std::endl;
+	std::cout << "TPR: " << tpr << std::endl;
+	std::cout << "FPR: " << fpr << std::endl;
+	std::cout << "FNR: " << fnr << std::endl;
+	std::cout << "F1-Score: " << f1 << std::endl;
 }
