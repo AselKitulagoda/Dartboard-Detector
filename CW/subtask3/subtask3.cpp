@@ -18,7 +18,9 @@ using namespace std;
 
 
 /** Function Headers */
-void detectAndDisplay(Mat frame);
+vector <Rect> detectAndDisplay1(Mat frame);
+
+void hough_viola(std::vector <Rect> viodetected, std::vector <Rect> houghdetected,Mat frame);
  
 /** Function to Calculate F1-Score */
 void f1_score();
@@ -34,13 +36,15 @@ int main(int argc, const char** argv)
     // 1. Read Input Image
     Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
     Mat oldframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+    Mat lastoldframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+
  
     // 2. Load the Strong Classifier in a structure called `Cascade'
     if (!cascade.load(cascade_name)) { printf("--(!)Error loading cascade\n"); return -1; };
  
     // 3. Detect Faces and Display Result
     printf("before face det\n");
-    detectAndDisplay(frame);
+    vector <Rect> violaoutput = detectAndDisplay1(frame);
  
     // f1_score();
  
@@ -86,24 +90,33 @@ int main(int argc, const char** argv)
     Mat new_hough_img = imread("normalised_hough_img.jpg", 0);
  
     // Thresholding the newly read hough image
-    Mat thresholded_hough = thresholdd(new_hough_img, 180);
+    Mat thresholded_hough = thresholdd(new_hough_img, 150);
 
     cv::imwrite("thresholded_hough.jpg", thresholded_hough);
 
  
     // Drawing the box around the detected stuff
-    draw_box(oldframe, hough_space, thresholded_hough, 115);
+    std::vector <Rect> hough_output;
+    hough_output = draw_box(oldframe, hough_space, thresholded_hough, 115);
+    std::cout << "houghoutput in subtask3 x is : " << hough_output[0].x << std::endl;
 
     cv::imwrite("rectangle.jpg", oldframe);
+
+    hough_viola(violaoutput,hough_output,lastoldframe);
+
+    cv::imwrite("violahough.jpg",lastoldframe);
+
+    
 
  
     return 0;
 }
  
 /** @function detectAndDisplay */
-void detectAndDisplay(Mat frame)
+vector <Rect> detectAndDisplay1(Mat frame)
 {
     std::vector<Rect> faces;
+    std::vector<Rect> vout;
     Mat frame_gray;
  
     // 1. Prepare Image by turning it into Grayscale and normalising lighting
@@ -132,6 +145,7 @@ void detectAndDisplay(Mat frame)
         
     }
     printf("draw boxes after\n");
+    return faces;
  
 }
  
@@ -171,4 +185,23 @@ void f1_score()
     std::cout << "FPR: " << fpr << std::endl;
     std::cout << "FNR: " << fnr << std::endl;
     std::cout << "F1-Score: " << f1 << std::endl;
+}
+
+void hough_viola(std::vector <Rect> viodetected, std::vector <Rect> houghdetected,Mat frame){
+    for (int i=0; i < viodetected.size(); ++i){
+        for (int j = 0; j<houghdetected.size();++j){
+            float _intersection = (viodetected[i] & houghdetected.front()).area();
+			float _union = (viodetected[i] | houghdetected[j]).area();
+            float iou = _intersection/_union;
+            // std::cout << "houghdet_in hough_viola : " << houghdetected[j] << std::endl;
+            // std::cout << "viodet in hough_viola : " << viodetected[i] << std::endl;
+            std::cout << "iou : " << iou<< std::endl;
+            if(iou > 0.6)
+			{
+                cv::rectangle(frame,houghdetected[j],Scalar(0,255,0),2);
+			}
+
+
+        }
+    }
 }
