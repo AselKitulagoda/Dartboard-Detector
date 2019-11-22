@@ -87,8 +87,8 @@ void sobel(cv::Mat &input, cv::Mat &output_dx, cv::Mat &output_dy, cv::Mat &outp
     cv::normalize(output_dy, final_dy, 0, 255, cv::NORM_MINMAX);
     cv::normalize(output_mag, final_mag, 0, 255, cv::NORM_MINMAX);
     cv::normalize(output_dir, final_dir, 0, 255, cv::NORM_MINMAX);
-  imwrite( "subtask3/dart12-sobel/dx.jpg", final_dx );
-  imwrite( "subtask3/dart12-sobel/dy.jpg", final_dy );
-  imwrite( "subtask3/dart12-sobel/mag.jpg", final_mag );
-  imwrite( "subtask3/dart12-sobel/dir.jpg", final_dir );
+  imwrite( "subtask3/sub_task_3_test_sobel/dx.jpg", final_dx );
+  imwrite( "subtask3/sub_task_3_test_sobel/dy.jpg", final_dy );
+  imwrite( "subtask3/sub_task_3_test_sobel/mag.jpg", final_mag );
+  imwrite( "subtask3/sub_task_3_test_sobel/dir.jpg", final_dir );
 }

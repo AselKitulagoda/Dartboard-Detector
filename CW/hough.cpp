@@ -6,6 +6,7 @@
 #include <opencv/cxcore.h>    //depending on your machine setup
 #include <math.h>
 
+
 #define min_radius 0
 #define max_radius 5
 
@@ -124,7 +125,7 @@ Mat hough_transform(cv::Mat original_img, cv::Mat magnitude_img, cv::Mat directi
 
     Mat new_hough = imread("hough.jpg", 0);
 
-    Mat thresholded_hough = thresholdd(new_hough, 20);
+    Mat thresholded_hough = thresholdd(new_hough, 150);
     cv::imwrite("thresholded_hough.jpg", thresholded_hough);
 
     Mat circle_image = original_img;
@@ -183,7 +184,7 @@ int main( int argc, char** argv )
 //   Mat direction_img = imread( "dir.jpg", 0 );  
 //   int ***acc = malloc3dArray(magnitude_img.rows, magnitude_img.cols, max_radius);
 
-  Mat thresholded = thresholdd(magnitude_img, 70);
+  Mat thresholded = thresholdd(magnitude_img,70);
   cv::imwrite("thresholded.jpg", thresholded);
   
   Mat hough = hough_transform(image, thresholded, unnormalised_dir);
