@@ -10,6 +10,7 @@
 #include "detector.hpp"
 #include "hough.hpp"
 #include "sobel.hpp"
+#include "ellipse.hpp"
 
 
 using namespace cv;
@@ -37,6 +38,7 @@ int main(int argc, const char** argv)
     Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
     Mat oldframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
     Mat lastoldframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+    Mat ellipseoldframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 
  
     // 2. Load the Strong Classifier in a structure called `Cascade'
@@ -105,6 +107,11 @@ int main(int argc, const char** argv)
     hough_viola(violaoutput,hough_output,lastoldframe);
 
     cv::imwrite("violahough.jpg",lastoldframe);
+
+    std::vector<RotatedRect> ellipses = ellipse_detector(magnitude_img,dir_img);
+    draw_ellipses(ellipseoldframe,ellipses);
+    cv::imwrite("ellipse.jpg",ellipseoldframe);
+    
 
     
 
