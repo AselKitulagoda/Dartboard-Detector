@@ -42,16 +42,15 @@ std::vector <Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholde
     }
 
     // Drawing the rectangles from the xyr_vals
-    for(auto val : xyr_vals)
-    {
-        int r = val.z;
-        Point p1 = Point(val.y - r, val.x - r);
-        Point p2 = Point(val.y + r, val.x + r);
+    for(int i = 0; i < xyr_vals.size(); i++)
+    {   
+        int r = xyr_vals[i].z;
+        Point p1 = Point(xyr_vals[i].y - r, xyr_vals[i].x - r);
+        Point p2 = Point(xyr_vals[i].y + r, xyr_vals[i].x + r);
 
-       cv::rectangle(original_img, p1, p2, Scalar(0, 255, 0), 2);
-    //    houghoutput.push_back(Rect(p1.y,p1.x,abs(p2.y-p1.y),abs(p2.x-p1.x))) ;
-               houghoutput.push_back(Rect(p1.x,p1.y,abs(p2.x-p1.x),abs(p2.y-p1.y))) ;
-       std::cout << "houghoutput x in detector is : " << houghoutput[0].x << std::endl;
+    //    cv::rectangle(originautoal_img, p1, p2, Scalar(0, 255, 0), 2);
+        houghoutput.push_back(Rect(p1.x, p1.y, abs(p2.x - p1.x), abs(p2.y - p1.y)));
+    //    std::cout << "houghoutput x in detector is : " << houghoutput[0].x << std::endl;
     }
     return houghoutput;
 }

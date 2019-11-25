@@ -20,7 +20,7 @@ std::vector<RotatedRect> ellipse_detector(Mat mag_img, Mat dir_img)
     Mat thresholded_mag = thresholdd(mag_img, 70);
 
     // vector of vectors for contours
-    vector<vector<Point>> contours;
+    vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
 
     // Finding the contours
