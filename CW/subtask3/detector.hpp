@@ -13,7 +13,7 @@ using namespace cv;
 
 #define MIN_VOTES 18
 
-std::vector<Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholded_hough, int max_radius, std::vector<Point2i> &hough_centers)
+std::vector<Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholded_hough, int max_radius, std::vector<Point> &hough_centers)
 {
     vector <Rect> houghoutput;
     std::vector<int> votes;

@@ -23,7 +23,7 @@ void hough_viola(std::vector <Rect> viodetected, std::vector <Rect> houghdetecte
  
 /** Function to Calculate F1-Score */
 void f1_score();
-
+std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::vector<Point> hough_centers);
 void draw_best_detected(cv::Mat original_img, 
             std::vector<Rect> hough, std::vector<Rect> ellipses);
 /** Global variables */
@@ -106,13 +106,9 @@ int main(int argc, const char** argv)
 	printf("finished threshold hough\n");
     // Drawing the box around the detected stuff
     std::vector <Rect> hough_output;
-	std::vector<Point2i> hough_centers;
+	std::vector<Point> hough_centers;
     hough_output = draw_box(oldframe, hough_space, thresholded_hough, 115, hough_centers);
 
-	for(int i = 0; i < hough_centers.size(); i++)
-	{
-		circle(allframe, hough_centers[i], 1, Scalar(0, 0, 255), 2);
-	}
     // std::cout << "houghoutput in subtask3 x is : " << hough_output[0].x << std::endl;
 
     // cv::imwrite("rectangle.jpg", oldframe);
@@ -129,6 +125,11 @@ int main(int argc, const char** argv)
     // cv::imwrite("ellipse.jpg",ellipseoldframe);
     
     // draw_best_detected(allframe, hough_output, ellipse_output);
+	std::vector<Rect> approved_viola = viola_hough(allframe, violaoutput, hough_centers);
+	for(int i = 0; i < approved_viola.size(); i++)
+	{
+		rectangle(allframe, approved_viola[i], Scalar(0, 255, 0), 2);
+	}
     cv::imwrite("all.jpg", allframe);
     return 0;
 }
@@ -510,64 +511,25 @@ float calc_iou(Rect a, Rect b)
     return i/u;
 }
 
-// void draw_best_detected(cv::Mat original_img, 
-//             std::vector<Rect> hough, std::vector<Rect> ellipses)
-// {
-//     std::vector<Rect> ground = ground_darts(9);
-//     std::vector<Rect> viola = detected_darts(9);
-//     std::cout << "GT size: " << ground.size() << std::endl;
-//     for(int i = 0; i < ground.size(); i++)
-//     {
-//         // Get best Viola
-//         float viola_iou = 0;
-//         int viola_idx = 0;
-//         for(int v = 0; v < viola.size(); v++)
-//         {
-//             if(calc_iou(ground[i], viola[v]) > viola_iou)
-//             {
-//                 viola_iou = calc_iou(ground[i], viola[v]);
-//                 viola_idx = v;
-//             }
-//         }
-// 		printf("did viola\n");
-//         // Get best Hough
-//         float hough_iou = 0;
-//         int hough_idx = 0;
-//         for(int h = 0; h < hough.size(); h++)
-//         {
-//             if(calc_iou(ground[i], hough[h]) > hough_iou)
-//             {
-//                 hough_iou = calc_iou(ground[i], hough[h]);
-//                 hough_idx = h;
-//             }
-//         }
-// 		printf("did hough\n");
-//         // Get best Ellipse
-//         float ellipse_iou = 0;
-//         int ellipse_idx = 0;
-//         for(int e = 0; e < ellipses.size(); e++)
-//         {
-//             if(calc_iou(ground[i], ellipses[e]) > ellipse_iou)
-//             {
-//                 ellipse_iou = calc_iou(ground[i], ellipses[e]);
-//                 ellipse_idx = e;
-//             }
-//         }
-// 		printf("did ellipse\n");
-
-//         // Draw Everything
-//         // Ground Truth = White
-//         cv::rectangle(original_img, ground[i], Scalar(0, 0, 0), 2);
-// 		printf("here1\n");
-//         // Viola = Green
-//         cv::rectangle(original_img, viola[viola_idx], Scalar(0, 255, 0), 2);
-//         printf("here2\n");
-//         // Hough = Red
-//         cv::rectangle(original_img, hough[hough_idx], Scalar(255, 0, 0), 2);
-// 		printf("here3\n");
-//         // Ellipse = Blue
-//         cv::rectangle(original_img, ellipses[ellipse_idx], Scalar(0, 0, 255), 2);
-// 		printf("here4\n");
-//     }
-//     cv::imwrite("all.jpg", original_img);
-// }
+std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::vector<Point> hough_centers)
+{
+	std::vector<Rect> approved_viola;
+	for(int i = 0; i < viola_detected.size(); i++)
+	{
+		Rect r = viola_detected[i];
+		Point center = (r.tl() + r.br()) * 0.5;
+		circle(img, center, 1, Scalar(255, 255, 0), 2);
+		for(int j = 0; j < hough_centers.size(); j++)
+		{	
+			double distance = cv::norm(center - hough_centers[j]);
+			std::cout << "Distance = " << distance << std::endl;
+			if(distance < 10)
+			{
+				approved_viola.push_back(viola_detected[i]);
+			}
+			circle(img, hough_centers[j], 1, Scalar(255, 0, 0), 2);
+		}
+		// rectangle(img, viola_detected[i], Scalar(0, 255, 0), 2);
+	}
+	return approved_viola;
+}
