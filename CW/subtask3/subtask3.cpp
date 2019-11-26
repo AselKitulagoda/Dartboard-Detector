@@ -77,7 +77,12 @@ int main(int argc, const char** argv)
     // Thresholding the magnitude
     Mat thresholded_mag = thresholdd(normalise(magnitude_img), 70);
     cv::imwrite("thresholded_mag.jpg", thresholded_mag);
- 
+	
+	// Hough Lines
+	Mat hough_lines;
+	line_detection(thresholded_mag, unnormalised_dir, hough_lines);
+	cv::imwrite("hough_lines.jpg", hough_lines);
+
     // Creating the hough space, assuming 0 rotation.
     // Min radius and Max radius 40 and 115 respectively
     int ***hough_space = create_hough_space(thresholded_mag, unnormalised_dir, 40, 115, 0);

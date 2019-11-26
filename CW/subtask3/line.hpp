@@ -33,79 +33,64 @@ bool intersection(Point2f o1, Point2f p1, Point2f o2, Point2f p2,
     return true;
 }
 
-std::vector<Point2f> line_detector(cv::Mat original_img, cv::Mat mag_img, int threshold)
+void line_detection(cv::Mat mag_img, cv::Mat dir_img, cv::Mat &hough_lines)
 {
-    std::vector<Vec2f> lines;
-    std::vector<Point2f> line_coords;
+    // Init hough_lines image
+    int hough_rows = (int) sqrt((mag_img.rows * mag_img.rows) + (mag_img.cols * mag_img.cols));
+    int max_angle = 180;
+    hough_lines.create(hough_rows, max_angle, mag_img.type());
 
-    Mat canny_img;
-    Canny(mag_img, canny_img, 50, 200, 3);
+    // Init Hough space
+    int H[hough_rows][max_angle];
+    for(int i = 0; i < hough_rows; i++)
+    {
+        for(int j = 0; j < max_angle; j++)
+        {
+            H[i][j] = 0;
+        }
+    }
 
-    HoughLines(mag_img, lines, 1, CV_PI/180, threshold, 0, 0);
-
-    int H[mag_img.rows][mag_img.cols];
     for(int y = 0; y < mag_img.rows; y++)
     {
         for(int x = 0; x < mag_img.cols; x++)
         {
-            H[y][x] = 0;
-        }
-    }
-
-    for(int i = 0; i < lines.size(); i++)
-    {
-        for(int j = i+1; j < lines.size(); j++)
-        {
-            float rho1 = lines[i][0];
-            float theta1 = lines[i][1];
-            Point pt11, pt12;
-            double a1 = cos(theta1);
-            double b1 = sin(theta1);
-            double x10 = a1 * rho1;
-            double y10 = b1 * rho1;
-
-            pt11.x = cvRound(x10 + 1000*(-b1));
-            pt11.y = cvRound(y10 + 1000*(a1));
-            pt12.x = cvRound(x10 - 1000*(-b1));
-            pt12.y = cvRound(y10 - 1000*(a1));
-
-            float rho2 = lines[j][0];
-            float theta2 = lines[j][1];
-            Point pt21, pt22;
-            double a2 = cos(theta2);
-            double b2 = sin(theta2);
-            double x20 = a2 * rho2;
-            double y20 = b2 * rho2;
-
-            pt21.x = cvRound(x20 + 1000*(-b2));
-            pt21.y = cvRound(y20 + 1000*(a2));
-            pt22.x = cvRound(x20 - 1000*(-b2));
-            pt22.y = cvRound(y20 - 1000*(a2));
-
-            Point2f r;
-
-            if(intersection(pt11, pt12, pt21, pt22, r))
+            float theta = (dir_img.at<uchar>(y, x)/255) * 180;
+            if(mag_img.at<uchar>(y, x) == 255)
             {
-                if(r.y < canny_img.rows && r.x < canny_img.cols
-                && r.y > 0 && r.x > 0)
+                float g = theta + 90;
+                if(g > max_angle) g -= max_angle;
+
+                float min_g, max_g;     // min and max gradient
+                float tolerance = 5;    // margin of error
+
+                min_g = g - tolerance;
+                if(min_g < 0) min_g += max_angle;
+
+                max_g = g + tolerance;
+                if(max_g > max_angle) max_g -= max_angle;
+
+                for(int t = 0; t < max_angle; t++)
                 {
-                    H[(int)r.y][(int)r.x] += 1;
+                    if(t >= min_g && t <= max_g)
+                    {
+                        float _theta = t * (CV_PI/180);
+                        float rho = y*sin(_theta) + x*cos(_theta);
+
+                        H[(int)rho][_theta] += 1;
+                    }
                 }
             }
         }
     }
-    for(int y = 0; y < canny_img.rows; y++)
+    for(int i = 0; i < hough_rows; i++)
     {
-        for(int x = 0; x < canny_img.cols; x++)
+        for(int j = 0; j < max_angle; j++)
         {
-            if(H[y][x] == 8)
-            {
-                line_coords.push_back(Point2f(y, x));
-                cv::circle(original_img, Point2f(y, x), 7, Scalar(0, 0, 255), -1);
-            }
+            if(H[j][i] > 255)
+                H[j][i] = 255;
+            hough_lines.at<uchar>(j, i) = H[j][i];
         }
     }
-    return line_coords;
 }
 
 #endif
