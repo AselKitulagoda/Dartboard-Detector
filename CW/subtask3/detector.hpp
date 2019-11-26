@@ -13,7 +13,7 @@ using namespace cv;
 
 #define MIN_VOTES 18
 
-std::vector<Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholded_hough, int max_radius)
+std::vector<Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholded_hough, int max_radius, std::vector<Point2i> &hough_centers)
 {
     vector <Rect> houghoutput;
     std::vector<int> votes;
@@ -49,7 +49,7 @@ std::vector<Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholded
         int r = xyr_vals[i].z;
         Point p1 = Point(xyr_vals[i].y - r, xyr_vals[i].x - r);
         Point p2 = Point(xyr_vals[i].y + r, xyr_vals[i].x + r);
-
+        hough_centers.push_back(Point(xyr_vals[i].y, xyr_vals[i].x));
     //    cv::rectangle(originautoal_img, p1, p2, Scalar(0, 255, 0), 2);
         houghoutput.push_back(Rect(p1.x, p1.y, abs(p2.x - p1.x), abs(p2.y - p1.y)));
     //    std::cout << "houghoutput x in detector is : " << houghoutput[0].x << std::endl;

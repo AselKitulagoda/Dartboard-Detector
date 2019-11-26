@@ -106,7 +106,13 @@ int main(int argc, const char** argv)
 	printf("finished threshold hough\n");
     // Drawing the box around the detected stuff
     std::vector <Rect> hough_output;
-    hough_output = draw_box(oldframe, hough_space, thresholded_hough, 115);
+	std::vector<Point2i> hough_centers;
+    hough_output = draw_box(oldframe, hough_space, thresholded_hough, 115, hough_centers);
+
+	for(int i = 0; i < hough_centers.size(); i++)
+	{
+		circle(allframe, hough_centers[i], 1, Scalar(0, 0, 255), 2);
+	}
     // std::cout << "houghoutput in subtask3 x is : " << hough_output[0].x << std::endl;
 
     // cv::imwrite("rectangle.jpg", oldframe);
