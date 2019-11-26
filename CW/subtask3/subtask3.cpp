@@ -75,7 +75,7 @@ int main(int argc, const char** argv)
     Mat unnormalised_dir = dir_img;
  
     // Thresholding the magnitude
-    Mat thresholded_mag = thresholdd(normalise(magnitude_img), 70);
+    Mat thresholded_mag = thresholdd(normalise(magnitude_img), 140);
     cv::imwrite("thresholded_mag.jpg", thresholded_mag);
 	
 	// Hough Lines
@@ -99,7 +99,7 @@ int main(int argc, const char** argv)
     Mat new_hough_img = imread("normalised_hough_img.jpg", 0);
  
     // Thresholding the newly read hough image
-    Mat thresholded_hough = thresholdd(new_hough_img, 150);
+    Mat thresholded_hough = thresholdd(new_hough_img, 170);
 
     cv::imwrite("thresholded_hough.jpg", thresholded_hough);
 
@@ -523,7 +523,7 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 		{	
 			double distance = cv::norm(center - hough_centers[j]);
 			std::cout << "Distance = " << distance << std::endl;
-			if(distance < 10)
+			if(distance < 30)
 			{
 				approved_viola.push_back(viola_detected[i]);
 			}
