@@ -50,7 +50,10 @@ int ***create_hough_space(cv::Mat magnitude_img, cv::Mat direction_img, int min_
             if(magnitude_img.at<uchar>(y, x) == 255)
             {
                 for(int r = min_radius; r < max_radius; r++)
-                {   
+                {
+                    for (float rotation=-M_PI;rotation <= M_PI;rotation+= M_PI/180)
+
+                    {  
                     int x0, y0;
 
                     // Handling +
@@ -70,6 +73,7 @@ int ***create_hough_space(cv::Mat magnitude_img, cv::Mat direction_img, int min_
                     {
                         accumulator[y0][x0][r] += 1;
                     }
+                }
                 }
             }
         }

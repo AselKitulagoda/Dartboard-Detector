@@ -12,6 +12,7 @@
 #include "sobel.hpp"
 #include "ellipse.hpp"
 #include "line.hpp"
+#define BoxDistance 30
 
 using namespace cv;
 using namespace std;
@@ -76,6 +77,7 @@ int main(int argc, const char** argv)
  
     // Thresholding the magnitude
     Mat thresholded_mag = thresholdd(normalise(magnitude_img), 140);
+
     cv::imwrite("thresholded_mag.jpg", thresholded_mag);
 	
 	// Hough Lines
@@ -522,8 +524,9 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 		for(int j = 0; j < hough_centers.size(); j++)
 		{	
 			double distance = cv::norm(center - hough_centers[j]);
-			std::cout << "Distance = " << distance << std::endl;
-			if(distance < 30)
+
+			// std::cout << "Distance = " << distance << std::endl;
+			if(distance < BoxDistance)
 			{
 				approved_viola.push_back(viola_detected[i]);
 			}
