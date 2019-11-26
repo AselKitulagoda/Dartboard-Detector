@@ -13,9 +13,10 @@ using namespace cv;
 
 #define MIN_VOTES 18
 
-std::vector <Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholded_hough, int max_radius)
+std::vector<Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholded_hough, int max_radius)
 {
     vector <Rect> houghoutput;
+    std::vector<int> votes;
     std::vector<Point3i> xyr_vals;
     for(int y = 0; y < thresholded_hough.rows; y++)
     {
@@ -33,7 +34,8 @@ std::vector <Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholde
                     }
                 }
                 if(accumulator[y][x][argmax] > MIN_VOTES)
-                {
+                {   
+                    votes.push_back(accumulator[y][x][argmax]);
                     xyr_vals.push_back(Point3i(y, x, argmax));
                     break;
                 }
@@ -52,6 +54,7 @@ std::vector <Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholde
         houghoutput.push_back(Rect(p1.x, p1.y, abs(p2.x - p1.x), abs(p2.y - p1.y)));
     //    std::cout << "houghoutput x in detector is : " << houghoutput[0].x << std::endl;
     }
+    groupRectangles(houghoutput, votes, 2, 0.5);
     return houghoutput;
 }
 #endif

@@ -54,41 +54,44 @@ void line_detection(cv::Mat mag_img, cv::Mat dir_img, cv::Mat &hough_lines)
     {
         for(int x = 0; x < mag_img.cols; x++)
         {
-            float theta = (dir_img.at<uchar>(y, x)/255) * 180;
+            float theta = dir_img.at<uchar>(y, x);
+            theta = (theta/255) * max_angle;
             if(mag_img.at<uchar>(y, x) == 255)
             {
-                float g = theta + 90;
-                if(g > max_angle) g -= max_angle;
+                float g = theta+90;
+                if(g > max_angle) 
+                    g -= max_angle;
 
-                float min_g, max_g;     // min and max gradient
-                float tolerance = 5;    // margin of error
+                float tolerance = 50;    // margin of error
 
-                min_g = g - tolerance;
-                if(min_g < 0) min_g += max_angle;
+                float min_g = g - tolerance;
+                if(min_g < 0) 
+                    min_g += max_angle;
 
-                max_g = g + tolerance;
-                if(max_g > max_angle) max_g -= max_angle;
+                float max_g = g + tolerance;
+                if(max_g > max_angle) 
+                    max_g -= max_angle;
 
                 for(int t = 0; t < max_angle; t++)
                 {
                     if(t >= min_g && t <= max_g)
                     {
-                        float _theta = t * (CV_PI/180);
-                        float rho = y*sin(_theta) + x*cos(_theta);
+                        float angle = t * (CV_PI/180);
+                        float rho = y*sin(angle) + x*cos(angle);
 
-                        H[(int)rho][_theta] += 1;
+                        H[(int)rho][t] += 1;
                     }
                 }
             }
         }
     }
-    for(int i = 0; i < hough_rows; i++)
+    for(int x = 0; x < hough_rows; x++)
     {
-        for(int j = 0; j < max_angle; j++)
-        {
-            if(H[j][i] > 255)
-                H[j][i] = 255;
-            hough_lines.at<uchar>(j, i) = H[j][i];
+        for(int y = 0; y < max_angle; y++)
+        {   
+            if(H[x][y] > 255)
+                H[x][y] = 255;
+            hough_lines.at<uchar>(x, y) = H[x][y];
         }
     }
 }

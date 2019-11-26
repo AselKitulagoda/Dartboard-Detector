@@ -80,6 +80,7 @@ int main(int argc, const char** argv)
 	
 	// Hough Lines
 	Mat hough_lines;
+	// line_detection(thresholded_mag, unnormalised_dir, hough_lines);
 	line_detection(thresholded_mag, unnormalised_dir, hough_lines);
 	cv::imwrite("hough_lines.jpg", hough_lines);
 
@@ -121,8 +122,7 @@ int main(int argc, const char** argv)
     // draw_ellipses(ellipseoldframe,ellipses);
     // cv::imwrite("ellipse.jpg",ellipseoldframe);
     
-    draw_best_detected(allframe, hough_output, ellipse_output);
-
+    // draw_best_detected(allframe, hough_output, ellipse_output);
     cv::imwrite("all.jpg", allframe);
     return 0;
 }
@@ -155,9 +155,7 @@ vector <Rect> detectAndDisplay1(Mat frame)
     for (int i = 0; i < faces.size(); i++)
     {
         rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar(0, 255, 0), 2);
-        std::cout << faces[i].height << std::endl;
-
-        
+        std::cout << faces[i].height << std::endl;      
     }
     printf("draw boxes after\n");
     return faces;
@@ -506,64 +504,64 @@ float calc_iou(Rect a, Rect b)
     return i/u;
 }
 
-void draw_best_detected(cv::Mat original_img, 
-            std::vector<Rect> hough, std::vector<Rect> ellipses)
-{
-    std::vector<Rect> ground = ground_darts(14);
-    std::vector<Rect> viola = detected_darts(14);
-    std::cout << "GT size: " << ground.size() << std::endl;
-    for(int i = 0; i < ground.size(); i++)
-    {
-        // Get best Viola
-        float viola_iou = 0;
-        int viola_idx = 0;
-        for(int v = 0; v < viola.size(); v++)
-        {
-            if(calc_iou(ground[i], viola[v]) > viola_iou)
-            {
-                viola_iou = calc_iou(ground[i], viola[v]);
-                viola_idx = v;
-            }
-        }
-		printf("did viola\n");
-        // Get best Hough
-        float hough_iou = 0;
-        int hough_idx = 0;
-        for(int h = 0; h < hough.size(); h++)
-        {
-            if(calc_iou(ground[i], hough[h]) > hough_iou)
-            {
-                hough_iou = calc_iou(ground[i], hough[h]);
-                hough_idx = h;
-            }
-        }
-		printf("did hough\n");
-        // Get best Ellipse
-        float ellipse_iou = 0;
-        int ellipse_idx = 0;
-        for(int e = 0; e < ellipses.size(); e++)
-        {
-            if(calc_iou(ground[i], ellipses[e]) > ellipse_iou)
-            {
-                ellipse_iou = calc_iou(ground[i], ellipses[e]);
-                ellipse_idx = e;
-            }
-        }
-		printf("did ellipse\n");
+// void draw_best_detected(cv::Mat original_img, 
+//             std::vector<Rect> hough, std::vector<Rect> ellipses)
+// {
+//     std::vector<Rect> ground = ground_darts(9);
+//     std::vector<Rect> viola = detected_darts(9);
+//     std::cout << "GT size: " << ground.size() << std::endl;
+//     for(int i = 0; i < ground.size(); i++)
+//     {
+//         // Get best Viola
+//         float viola_iou = 0;
+//         int viola_idx = 0;
+//         for(int v = 0; v < viola.size(); v++)
+//         {
+//             if(calc_iou(ground[i], viola[v]) > viola_iou)
+//             {
+//                 viola_iou = calc_iou(ground[i], viola[v]);
+//                 viola_idx = v;
+//             }
+//         }
+// 		printf("did viola\n");
+//         // Get best Hough
+//         float hough_iou = 0;
+//         int hough_idx = 0;
+//         for(int h = 0; h < hough.size(); h++)
+//         {
+//             if(calc_iou(ground[i], hough[h]) > hough_iou)
+//             {
+//                 hough_iou = calc_iou(ground[i], hough[h]);
+//                 hough_idx = h;
+//             }
+//         }
+// 		printf("did hough\n");
+//         // Get best Ellipse
+//         float ellipse_iou = 0;
+//         int ellipse_idx = 0;
+//         for(int e = 0; e < ellipses.size(); e++)
+//         {
+//             if(calc_iou(ground[i], ellipses[e]) > ellipse_iou)
+//             {
+//                 ellipse_iou = calc_iou(ground[i], ellipses[e]);
+//                 ellipse_idx = e;
+//             }
+//         }
+// 		printf("did ellipse\n");
 
-        // Draw Everything
-        // Ground Truth = White
-        cv::rectangle(original_img, ground[i], Scalar(0, 0, 0), 2);
-		printf("here1\n");
-        // Viola = Green
-        cv::rectangle(original_img, viola[viola_idx], Scalar(0, 255, 0), 2);
-        printf("here2\n");
-        // Hough = Red
-        cv::rectangle(original_img, hough[hough_idx], Scalar(255, 0, 0), 2);
-		printf("here3\n");
-        // Ellipse = Blue
-        cv::rectangle(original_img, ellipses[ellipse_idx], Scalar(0, 0, 255), 2);
-		printf("here4\n");
-    }
-    cv::imwrite("all.jpg", original_img);
-}
+//         // Draw Everything
+//         // Ground Truth = White
+//         cv::rectangle(original_img, ground[i], Scalar(0, 0, 0), 2);
+// 		printf("here1\n");
+//         // Viola = Green
+//         cv::rectangle(original_img, viola[viola_idx], Scalar(0, 255, 0), 2);
+//         printf("here2\n");
+//         // Hough = Red
+//         cv::rectangle(original_img, hough[hough_idx], Scalar(255, 0, 0), 2);
+// 		printf("here3\n");
+//         // Ellipse = Blue
+//         cv::rectangle(original_img, ellipses[ellipse_idx], Scalar(0, 0, 255), 2);
+// 		printf("here4\n");
+//     }
+//     cv::imwrite("all.jpg", original_img);
+// }
