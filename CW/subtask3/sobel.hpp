@@ -31,6 +31,26 @@ Mat thresholdd(Mat input, int value)
     return output;
 }
 
+Mat float_thresholdd(Mat input, int value)
+{
+    Mat output = Mat(input.rows, input.cols, CV_8UC1, Scalar(0));
+    for(int y=0; y<input.rows; y++)
+    {
+        for(int x=0; x<input.cols; x++)
+        {
+            if(input.at<float>(y, x) > value)
+            {
+                output.at<uchar>(y, x)  = 255;
+            }
+            else
+            {
+                output.at<uchar>(y, x) = 0;
+            }
+        }
+    }
+    return output;
+}
+
 Mat normalise(Mat img)
 {
     Mat normalised;

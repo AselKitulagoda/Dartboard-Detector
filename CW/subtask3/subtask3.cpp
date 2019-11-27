@@ -24,7 +24,7 @@ void hough_viola(std::vector <Rect> viodetected, std::vector <Rect> houghdetecte
  
 /** Function to Calculate F1-Score */
 void f1_score();
-std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::vector<Point> hough_centers);
+std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::vector<Point> hough_centers, std::vector<Point> line_intersections);
 void draw_best_detected(cv::Mat original_img, 
             std::vector<Rect> hough, std::vector<Rect> ellipses);
 /** Global variables */
@@ -41,6 +41,8 @@ int main(int argc, const char** argv)
     Mat lastoldframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
     Mat ellipseoldframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 	Mat allframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+	Mat lineframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+
 
  
     // 2. Load the Strong Classifier in a structure called `Cascade'
@@ -81,9 +83,8 @@ int main(int argc, const char** argv)
     cv::imwrite("thresholded_mag.jpg", thresholded_mag);
 	
 	// Hough Lines
-	Mat hough_lines;
-	// line_detection(thresholded_mag, unnormalised_dir, hough_lines);
-	line_detection(thresholded_mag, unnormalised_dir, hough_lines);
+	Mat hough_lines = line_detection(thresholded_mag, unnormalised_dir);
+	std::vector<Point> line_intersections = get_intersection_points(hough_lines);
 	cv::imwrite("hough_lines.jpg", hough_lines);
 
     // Creating the hough space, assuming 0 rotation.
@@ -127,7 +128,7 @@ int main(int argc, const char** argv)
     // cv::imwrite("ellipse.jpg",ellipseoldframe);
     
     // draw_best_detected(allframe, hough_output, ellipse_output);
-	std::vector<Rect> approved_viola = viola_hough(allframe, violaoutput, hough_centers);
+	std::vector<Rect> approved_viola = viola_hough(allframe, violaoutput, hough_centers, line_intersections);
 	for(int i = 0; i < approved_viola.size(); i++)
 	{
 		rectangle(allframe, approved_viola[i], Scalar(0, 255, 0), 2);
@@ -513,26 +514,84 @@ float calc_iou(Rect a, Rect b)
     return i/u;
 }
 
-std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::vector<Point> hough_centers)
+std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::vector<Point> hough_centers, std::vector<Point> line_intersections)
 {
 	std::vector<Rect> approved_viola;
+	std::vector<Rect> approved_viola2;
+	
+	/*
+		First go through all violas
+		Calculate distance of hough centers from viola centers
+		Choose the ones where distance is < 30
+
+		Loop through the chosen violas
+		Calculate distance of line intersections from viola centers
+		Choose the ones where distance < 20
+
+		if the latter is empty, choose the first one
+	*/
 	for(int i = 0; i < viola_detected.size(); i++)
 	{
 		Rect r = viola_detected[i];
 		Point center = (r.tl() + r.br()) * 0.5;
+
 		circle(img, center, 1, Scalar(255, 255, 0), 2);
 		for(int j = 0; j < hough_centers.size(); j++)
 		{	
 			double distance = cv::norm(center - hough_centers[j]);
-
-			// std::cout << "Distance = " << distance << std::endl;
 			if(distance < BoxDistance)
 			{
 				approved_viola.push_back(viola_detected[i]);
 			}
 			circle(img, hough_centers[j], 1, Scalar(255, 0, 0), 2);
 		}
-		// rectangle(img, viola_detected[i], Scalar(0, 255, 0), 2);
 	}
-	return approved_viola;
+	for(int k = 0; k < approved_viola.size(); k++)
+	{
+		Rect r = approved_viola[k];
+		Point center = (r.tl() + r.br()) * 0.5;
+		for(int l = 0; l < line_intersections.size(); l++)
+		{
+			double distance = cv::norm(center - line_intersections[l]);
+			if(distance < 20)
+			{
+				approved_viola2.push_back(approved_viola[k]);
+			}
+			circle(img, line_intersections[l], 1, Scalar(245, 66, 197), 2);
+		}
+	}
+	if(approved_viola2.size() == 0)
+	{	
+		if (approved_viola.size() != 0)
+		{
+			std::cout << "Chosen Hough = CIRCLES" << std::endl;
+			return approved_viola;
+		}
+		else {
+			std::cout << "Chosen Hough = LINES ONLY" << std::endl;
+			for(int k = 0; k < viola_detected.size(); k++)
+			{	
+				printf("here1\n");
+				Rect r = viola_detected[k];
+				printf("here2\n");
+				Point center = (r.tl() + r.br()) * 0.5;
+				printf("%d\n", line_intersections.size());
+				for(int l = 0; l < line_intersections.size(); l++)
+				{	
+					double distance = cv::norm(center - line_intersections[l]);
+					if(distance < 20)
+					{
+						approved_viola2.push_back(viola_detected[k]);
+					}
+					circle(img, line_intersections[l], 1, Scalar(245, 66, 197), 2);
+				}
+			}
+			return approved_viola2;
+		}
+	}
+	else
+	{	
+		std::cout << "Chosen Hough = LINES" << std::endl;
+		return approved_viola2;
+	}
 }

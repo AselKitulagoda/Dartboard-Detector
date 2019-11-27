@@ -51,11 +51,10 @@ int ***create_hough_space(cv::Mat magnitude_img, cv::Mat direction_img, int min_
             {
                 for(int r = min_radius; r < max_radius; r++)
                 {
-                    for (float rotation=-M_PI;rotation <= M_PI;rotation+= M_PI/180)
-
-                    {  
+                    // for (float rotation=-M_PI;rotation <= M_PI;rotation+= M_PI/180)
+                    // {  
                     int x0, y0;
-
+                    int rotation = 0;
                     // Handling +
                     y0 = y + r*std::sin(direction_img.at<float>(y, x) + rotation);
                     x0 = x + r*std::cos(direction_img.at<float>(y, x) + rotation);
@@ -74,7 +73,7 @@ int ***create_hough_space(cv::Mat magnitude_img, cv::Mat direction_img, int min_
                         accumulator[y0][x0][r] += 1;
                     }
                 }
-                }
+                // }
             }
         }
     }

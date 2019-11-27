@@ -33,15 +33,26 @@ bool intersection(Point2f o1, Point2f p1, Point2f o2, Point2f p2,
     return true;
 }
 
-void line_detection(cv::Mat mag_img, cv::Mat dir_img, cv::Mat &hough_lines)
+int **create2DArray(int width, int height)
 {
+    int **H = (int **) malloc(sizeof(int *)*width);
+    for(int i = 0; i < width; i++)
+    {
+        H[i] = (int *) malloc(height * sizeof(int));
+    }
+    return H;
+}
+
+Mat line_detection(cv::Mat mag_img, cv::Mat dir_img)
+{   
     // Init hough_lines image
     int hough_rows = (int) sqrt((mag_img.rows * mag_img.rows) + (mag_img.cols * mag_img.cols));
-    int max_angle = 180;
-    hough_lines.create(hough_rows, max_angle, mag_img.type());
+    int max_angle = 360;
+
+    Mat test(hough_rows, max_angle, CV_32FC1, Scalar(0));
 
     // Init Hough space
-    int H[hough_rows][max_angle];
+    int **H = create2DArray(hough_rows, max_angle);
     for(int i = 0; i < hough_rows; i++)
     {
         for(int j = 0; j < max_angle; j++)
@@ -54,46 +65,70 @@ void line_detection(cv::Mat mag_img, cv::Mat dir_img, cv::Mat &hough_lines)
     {
         for(int x = 0; x < mag_img.cols; x++)
         {
-            float theta = dir_img.at<uchar>(y, x);
-            theta = (theta/255) * max_angle;
+            float theta = dir_img.at<float>(y, x);
             if(mag_img.at<uchar>(y, x) == 255)
-            {
-                float g = theta+90;
-                if(g > max_angle) 
-                    g -= max_angle;
-
-                float tolerance = 50;    // margin of error
-
-                float min_g = g - tolerance;
-                if(min_g < 0) 
-                    min_g += max_angle;
-
-                float max_g = g + tolerance;
-                if(max_g > max_angle) 
-                    max_g -= max_angle;
-
-                for(int t = 0; t < max_angle; t++)
-                {
-                    if(t >= min_g && t <= max_g)
-                    {
-                        float angle = t * (CV_PI/180);
-                        float rho = y*sin(angle) + x*cos(angle);
-
-                        H[(int)rho][t] += 1;
-                    }
+            {   
+                int rho = x*cos(theta) + y*sin(theta);
+                if(rho < hough_rows && rho >= 0)
+                {   
+                    int deg = (theta * 180/M_PI) + (max_angle/2);
+                    H[rho][deg] += 1;
                 }
             }
         }
     }
+
     for(int x = 0; x < hough_rows; x++)
     {
         for(int y = 0; y < max_angle; y++)
         {   
-            if(H[x][y] > 255)
-                H[x][y] = 255;
-            hough_lines.at<uchar>(x, y) = H[x][y];
+            test.at<float>(x, y) = H[x][y];
         }
     }
+    cv::normalize(test, test, 0, 255, NORM_MINMAX);
+    threshold(test, test, 60, 255, THRESH_BINARY);
+
+    Mat straight_lines(mag_img.rows, mag_img.cols, CV_32FC1, Scalar(0));
+    Mat flattened(mag_img.rows, mag_img.cols, CV_8UC1, Scalar(0));
+    for(int i = 0; i < hough_rows; i++)
+    {
+        for(int j = 0; j < max_angle; j++)
+        {   
+            if(test.at<float>(i, j) == 255)
+            {
+                for(int x = 0; x < mag_img.cols; x++)
+                {   
+                    float theta = (j - (max_angle/2)) * M_PI/180;
+                    int y = (i - x*cos(theta))/sin(theta);
+                    if(y >= 0 && y < mag_img.rows)
+                    {
+                        straight_lines.at<float>(y, x) += 1;
+                    }            
+                }
+            }
+        }
+    }
+    cv::normalize(straight_lines, flattened, 0, 255, NORM_MINMAX);
+    return flattened;
+}
+
+std::vector<Point> get_intersection_points(cv::Mat flattened)
+{
+    std::vector<Point> points;
+    // threshold(flattened, flattened, 140, 255, THRESH_BINARY);
+    flattened = float_thresholdd(flattened, 140);
+    cv::imwrite("thr.jpg", flattened);
+    for(int i = 0; i < flattened.rows; i++)
+    {
+        for(int j = 0; j < flattened.cols; j++)
+        {
+            if(flattened.at<uchar>(i, j) != 0)
+            {
+                points.push_back(Point(j, i));
+            }
+        }
+    }
+    return points;
 }
 
 #endif
