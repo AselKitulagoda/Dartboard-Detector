@@ -89,10 +89,10 @@ int main(int argc, const char** argv)
 
     // Creating the hough space, assuming 0 rotation.
     // Min radius and Max radius 40 and 115 respectively
-    int ***hough_space = create_hough_space(thresholded_mag, unnormalised_dir, 40, 115, 0);
+    int ***hough_space = create_hough_space(thresholded_mag, unnormalised_dir, 40, 150, 0);
  
     // Generating the hough image
-    Mat hough_img = view_hough_space(hough_space, thresholded_mag, 40, 115);
+    Mat hough_img = view_hough_space(hough_space, thresholded_mag, 40, 150);
     Mat final_hough(mag_img.rows, mag_img.cols, CV_8UC1, Scalar(0));
  
     cv::normalize(hough_img, final_hough, 0, 255, NORM_MINMAX);
@@ -102,7 +102,7 @@ int main(int argc, const char** argv)
     Mat new_hough_img = imread("normalised_hough_img.jpg", 0);
  
     // Thresholding the newly read hough image
-    Mat thresholded_hough = thresholdd(new_hough_img, 170);
+    Mat thresholded_hough = thresholdd(new_hough_img, 140);
 
     cv::imwrite("thresholded_hough.jpg", thresholded_hough);
 
@@ -110,7 +110,7 @@ int main(int argc, const char** argv)
     // Drawing the box around the detected stuff
     std::vector <Rect> hough_output;
 	std::vector<Point> hough_centers;
-    hough_output = draw_box(oldframe, hough_space, thresholded_hough, 115, hough_centers);
+    hough_output = draw_box(oldframe, hough_space, thresholded_hough, 150, hough_centers);
 
     // std::cout << "houghoutput in subtask3 x is : " << hough_output[0].x << std::endl;
 
@@ -571,11 +571,11 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 			std::cout << "Chosen Hough = LINES ONLY" << std::endl;
 			for(int k = 0; k < viola_detected.size(); k++)
 			{	
-				printf("here1\n");
+				// printf("here1\n");
 				Rect r = viola_detected[k];
-				printf("here2\n");
+				// printf("here2\n");
 				Point center = (r.tl() + r.br()) * 0.5;
-				printf("%d\n", line_intersections.size());
+				// printf("%d\n", line_intersections.size());
 				for(int l = 0; l < line_intersections.size(); l++)
 				{	
 					double distance = cv::norm(center - line_intersections[l]);
