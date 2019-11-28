@@ -21,6 +21,7 @@ using namespace std;
 vector <Rect> detectAndDisplay1(Mat frame);
 
 void hough_viola(std::vector <Rect> viodetected, std::vector <Rect> houghdetected,Mat frame);
+
  
 /** Function to Calculate F1-Score */
 void f1_score();
@@ -116,7 +117,7 @@ int main(int argc, const char** argv)
 
     // cv::imwrite("rectangle.jpg", oldframe);
 
-    // hough_viola(violaoutput,hough_output,lastoldframe);
+    // hough_viola(violaoutput,hough_outputLINES,lastoldframe);
 
     // cv::imwrite("violahough.jpg",lastoldframe);
 	printf("starting ellipse\n");
@@ -129,9 +130,58 @@ int main(int argc, const char** argv)
     
     // draw_best_detected(allframe, hough_output, ellipse_output);
 	std::vector<Rect> approved_viola = viola_hough(allframe, violaoutput, hough_centers, line_intersections);
-	for(int i = 0; i < approved_viola.size(); i++)
+	std::vector<Rect> approved_viola_filtered;
+	std::vector<Rect> approved_viola_final;
+	// std::sort(approved_viola.begin(),approved_viola.end());
+	approved_viola.erase(unique(approved_viola.begin(),approved_viola.end()),approved_viola.end());
+	std:cout<<"size of approved vio before: " << approved_viola.size() << std::endl;
+	int **viola_lookup = create2DArray(approved_viola.size(),approved_viola.size());
+for (int i=0;i<approved_viola.size();i++){
+		for (int j=0;j<approved_viola.size();j++){
+			viola_lookup[i][j] = -1;
+			}
+			}	
+//Now calculate whether intersection has taken place - 2 for loops iterate through viola.size
+	for (int i=0;i<approved_viola.size();i++){
+		for (int j=0;j<approved_viola.size();j++){
+			if (i != j){
+				if ((viola_lookup[i][j] == -1) && (viola_lookup[j][i]==-1)){
+				if ((approved_viola[i] & approved_viola[j]).area()>0){
+					printf("Intersection detected\n");
+					viola_lookup[i][j] = 1;
+					viola_lookup[j][i] = 1;
+					approved_viola_filtered.push_back(approved_viola[i]);
+
+				}
+				else {
+					viola_lookup[i][j] = 0;
+					viola_lookup[j][i] = 0;
+				}
+				}
+			}
+		}
+	}
+	std::cout << "FILTERED VIOLA SIZE: " << approved_viola_filtered.size()<<std::endl;
+	std::cout << "FINAL VIOLA BEFORE SIZE: " << approved_viola_final.size() << std::endl;
+	for (int i=0;i<approved_viola.size();i++){
+		for (int j=0;j<approved_viola_filtered.size();j++){
+			if (approved_viola[i] == approved_viola_filtered[j]){
+				approved_viola.erase(std::remove(approved_viola.begin(),approved_viola.end(),approved_viola[i]),approved_viola.end());
+			}
+
+		}
+		approved_viola_final = approved_viola;
+	}
+		std::cout << "FINAL VIOLA AFTER SIZE: " << approved_viola_final.size() << std::endl;
+
+
+
+	
+
+	for(int i = 0; i < approved_viola_final.size(); i++)
 	{
-		rectangle(allframe, approved_viola[i], Scalar(0, 255, 0), 2);
+		std::cout << "value of i in approved vio is : " << approved_viola_final[i]<< std::endl;
+		rectangle(allframe, approved_viola_final[i], Scalar(0, 255, 0), 2);
 	}
     cv::imwrite("all.jpg", allframe);
     return 0;
@@ -542,8 +592,8 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 			if(distance < BoxDistance)
 			{
 				approved_viola.push_back(viola_detected[i]);
+				circle(img, hough_centers[j], 1, Scalar(255, 0, 0), 2);
 			}
-			circle(img, hough_centers[j], 1, Scalar(255, 0, 0), 2);
 		}
 	}
 	for(int k = 0; k < approved_viola.size(); k++)
@@ -556,8 +606,9 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 			if(distance < 20)
 			{
 				approved_viola2.push_back(approved_viola[k]);
+				circle(img, line_intersections[l], 1, Scalar(245, 66, 197), 2);
+
 			}
-			circle(img, line_intersections[l], 1, Scalar(245, 66, 197), 2);
 		}
 	}
 	if(approved_viola2.size() == 0)
@@ -595,3 +646,13 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 		return approved_viola2;
 	}
 }
+
+// int **create2DArray(int width, int height)
+// {
+//     int **H = (int **) malloc(sizeof(int *)*width);
+//     for(int i = 0; i < width; i++)
+//     {
+//         H[i] = (int *) malloc(height * sizeof(int));
+//     }
+//     return H;
+// }
