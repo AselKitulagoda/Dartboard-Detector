@@ -38,7 +38,6 @@ std::vector<Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholded
                 {   
                     votes.push_back(accumulator[y][x][argmax]);
                     xyr_vals.push_back(Point3i(y, x, argmax));
-                    // break;
                 }
             }
         }
@@ -51,10 +50,7 @@ std::vector<Rect> draw_box(Mat original_img, int ***accumulator, Mat thresholded
         Point p1 = Point(xyr_vals[i].y - r, xyr_vals[i].x - r);
         Point p2 = Point(xyr_vals[i].y + r, xyr_vals[i].x + r);
         hough_centers.push_back(Point(xyr_vals[i].y, xyr_vals[i].x));
-    //    cv::rectangle(originautoal_img, p1, p2, Scalar(0, 255, 0), 2);
         houghoutput.push_back(Rect(p1.x, p1.y, abs(p2.x - p1.x), abs(p2.y - p1.y)));
-    //    std::cout <<     //    std::cout << "houghoutput x in detector is : " << houghoutput[0].x << std::endl;
-// "houghoutput x in detector is : " << houghoutput[0].x << std::endl;
     }
     groupRectangles(houghoutput, votes, 2, 0.5);
     return houghoutput;

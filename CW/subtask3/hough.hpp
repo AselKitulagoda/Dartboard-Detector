@@ -26,7 +26,7 @@ int ***malloc3dArray(int dim1, int dim2, int dim3)
     return array;
 }
 
-int ***create_hough_space(cv::Mat magnitude_img, cv::Mat direction_img, int min_radius, int max_radius, float rotation)
+int ***create_hough_space(cv::Mat magnitude_img, cv::Mat direction_img, int min_radius, int max_radius)
 {
     int ***accumulator = malloc3dArray(magnitude_img.rows, magnitude_img.cols, max_radius);
     
@@ -51,13 +51,13 @@ int ***create_hough_space(cv::Mat magnitude_img, cv::Mat direction_img, int min_
             {
                 for(int r = min_radius; r < max_radius; r++)
                 {
-                    // for (float rotation=-M_PI;rotation <= M_PI;rotation+= M_PI/180)
-                    // {  
+                    for (int rotation=-5;rotation <= 5;rotation++)
+                    {  
                     int x0, y0;
-                    int rotation = 0;
+                    float rot = rotation * M_PI/180;
                     // Handling +
-                    y0 = y + r*std::sin(direction_img.at<float>(y, x) + rotation);
-                    x0 = x + r*std::cos(direction_img.at<float>(y, x) + rotation);
+                    y0 = y + r*std::sin(direction_img.at<float>(y, x) + rot);
+                    x0 = x + r*std::cos(direction_img.at<float>(y, x) + rot);
 
                     if(x0 >= 0 && y0 >= 0 && y0 < magnitude_img.rows && x0 < magnitude_img.cols)
                     {
@@ -65,15 +65,15 @@ int ***create_hough_space(cv::Mat magnitude_img, cv::Mat direction_img, int min_
                     }
 
                     // Handling -
-                    y0 = y - r*std::sin(direction_img.at<float>(y, x) + rotation);
-                    x0 = x - r*std::cos(direction_img.at<float>(y, x) + rotation);
+                    y0 = y - r*std::sin(direction_img.at<float>(y, x) + rot);
+                    x0 = x - r*std::cos(direction_img.at<float>(y, x) + rot);
 
                     if(x0 >= 0 && y0 >= 0 && y0 < magnitude_img.rows && x0 < magnitude_img.cols)
                     {
                         accumulator[y0][x0][r] += 1;
                     }
                 }
-                // }
+                }
             }
         }
     }

@@ -41,7 +41,6 @@ std::vector<RotatedRect> ellipse_detector(Mat mag_img, Mat dir_img)
 
 std::vector<Rect> convert_rotated_rect(std::vector<RotatedRect> ellipses)
 {
-    // https://stackoverflow.com/questions/32920419/opencv-minimum-upright-bounding-rect-of-a-rotatedrect
     std::vector<Rect> bounding_rectangles;
 
     for(int i = 0; i < ellipses.size(); i++)

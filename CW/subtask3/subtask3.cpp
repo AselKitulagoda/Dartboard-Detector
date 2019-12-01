@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <algorithm>
 #include <opencv/cv.h>        //you may need to
 #include <opencv/highgui.h>   //adjust import locations
 #include <opencv/cxcore.h>    //depending on your machine setup
@@ -20,16 +21,20 @@ using namespace std;
 /** Function Headers */
 vector <Rect> detectAndDisplay1(Mat frame);
 
-void hough_viola(std::vector <Rect> viodetected, std::vector <Rect> houghdetected,Mat frame);
+/** Function to store the Ground Truths*/
+std::vector<Rect> ground_darts(int n);
 
- 
 /** Function to Calculate F1-Score */
-void f1_score();
+void f1_score(std::vector<Rect> approved_viola, int img);
+
+/** Function combining Viola and Hough */
 std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::vector<Point> hough_centers, std::vector<Point> line_intersections);
+
+/** Function that draws the best ellipses*/
 void draw_best_detected(cv::Mat original_img, 
             std::vector<Rect> hough, std::vector<Rect> ellipses);
+
 /** Global variables */
-// String cascade_name = "frontalface.xml";
 String cascade_name = "cascade.xml";
 CascadeClassifier cascade;
  
@@ -44,16 +49,11 @@ int main(int argc, const char** argv)
 	Mat allframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 	Mat lineframe = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 
-
- 
     // 2. Load the Strong Classifier in a structure called `Cascade'
     if (!cascade.load(cascade_name)) { printf("--(!)Error loading cascade\n"); return -1; };
  
     // 3. Detect Faces and Display Result
-    printf("before face det\n");
     vector <Rect> violaoutput = detectAndDisplay1(frame);
- 
-    // f1_score();
  
     // 4. Save Result Image
     imwrite("cascade_detected.jpg", frame);
@@ -65,15 +65,12 @@ int main(int argc, const char** argv)
  
     Mat mag_img(gray_image.rows, gray_image.cols, CV_32FC1, Scalar(0));
     Mat dir_img(gray_image.rows, gray_image.cols, CV_32FC1, Scalar(0));
-    printf("here\n");
  
     // Performing Sobel Edge detection, getting the magnitude and direction imgs
     sobel(gray_image, mag_img, dir_img);
-    printf("after sobel\n");
     cv::imwrite("magnew.jpg", mag_img);
     cv::imwrite("dirnew.jpg", dir_img);
     Mat magnitude_img = imread( "magnew.jpg", 0 );
-
  
     // Storing the unnormalised direction
     Mat unnormalised_dir = dir_img;
@@ -90,7 +87,7 @@ int main(int argc, const char** argv)
 
     // Creating the hough space, assuming 0 rotation.
     // Min radius and Max radius 40 and 115 respectively
-    int ***hough_space = create_hough_space(thresholded_mag, unnormalised_dir, 40, 150, 0);
+    int ***hough_space = create_hough_space(thresholded_mag, unnormalised_dir, 40, 150);
  
     // Generating the hough image
     Mat hough_img = view_hough_space(hough_space, thresholded_mag, 40, 150);
@@ -107,47 +104,37 @@ int main(int argc, const char** argv)
 
     cv::imwrite("thresholded_hough.jpg", thresholded_hough);
 
-	printf("finished threshold hough\n");
     // Drawing the box around the detected stuff
     std::vector <Rect> hough_output;
 	std::vector<Point> hough_centers;
     hough_output = draw_box(oldframe, hough_space, thresholded_hough, 150, hough_centers);
 
-    // std::cout << "houghoutput in subtask3 x is : " << hough_output[0].x << std::endl;
-
-    // cv::imwrite("rectangle.jpg", oldframe);
-
-    // hough_viola(violaoutput,hough_outputLINES,lastoldframe);
-
-    // cv::imwrite("violahough.jpg",lastoldframe);
-	printf("starting ellipse\n");
+	// Getting the Ellipses 
     std::vector<RotatedRect> ellipses = ellipse_detector(magnitude_img, dir_img);
-	printf("finished ellipse\n");
     std::vector<Rect> ellipse_output = convert_rotated_rect(ellipses);
-	printf("converted ellipse\n");
-    // draw_ellipses(ellipseoldframe,ellipses);
-    // cv::imwrite("ellipse.jpg",ellipseoldframe);
     
-    // draw_best_detected(allframe, hough_output, ellipse_output);
+	// Combining Viola and Hough Detections
 	std::vector<Rect> approved_viola = viola_hough(allframe, violaoutput, hough_centers, line_intersections);
 	std::vector<Rect> approved_viola_filtered;
 	std::vector<Rect> approved_viola_final;
-	// std::sort(approved_viola.begin(),approved_viola.end());
+
+	// Filtering out duplicate hits in the approved viola detections
 	approved_viola.erase(unique(approved_viola.begin(),approved_viola.end()),approved_viola.end());
-	std:cout<<"size of approved vio before: " << approved_viola.size() << std::endl;
 	int **viola_lookup = create2DArray(approved_viola.size(),approved_viola.size());
-for (int i=0;i<approved_viola.size();i++){
-		for (int j=0;j<approved_viola.size();j++){
+	for (int i=0; i < approved_viola.size(); i++) 
+	{
+		for (int j=0; j<approved_viola.size(); j++)
+		{
 			viola_lookup[i][j] = -1;
-			}
-			}	
-//Now calculate whether intersection has taken place - 2 for loops iterate through viola.size
+		}
+	}	
+
+	//Now calculate whether intersection has taken place - 2 for loops iterate through viola.size
 	for (int i=0;i<approved_viola.size();i++){
 		for (int j=0;j<approved_viola.size();j++){
 			if (i != j){
 				if ((viola_lookup[i][j] == -1) && (viola_lookup[j][i]==-1)){
 				if ((approved_viola[i] & approved_viola[j]).area()>0){
-					printf("Intersection detected\n");
 					viola_lookup[i][j] = 1;
 					viola_lookup[j][i] = 1;
 					approved_viola_filtered.push_back(approved_viola[i]);
@@ -161,8 +148,6 @@ for (int i=0;i<approved_viola.size();i++){
 			}
 		}
 	}
-	std::cout << "FILTERED VIOLA SIZE: " << approved_viola_filtered.size()<<std::endl;
-	std::cout << "FINAL VIOLA BEFORE SIZE: " << approved_viola_final.size() << std::endl;
 	for (int i=0;i<approved_viola.size();i++){
 		for (int j=0;j<approved_viola_filtered.size();j++){
 			if (approved_viola[i] == approved_viola_filtered[j]){
@@ -172,18 +157,55 @@ for (int i=0;i<approved_viola.size();i++){
 		}
 		approved_viola_final = approved_viola;
 	}
-		std::cout << "FINAL VIOLA AFTER SIZE: " << approved_viola_final.size() << std::endl;
 
-
-
+	// // Trying ellipse stuff for F1 here
+	// std::vector<Point> ellipse_centers;
+	// for(int i = 0; i < ellipse_output.size(); i++)
+	// {	
+	// 	Point center = (ellipse_output[i].tl() + ellipse_output[i].br()) * 0.5;
+	// 	ellipse_centers.push_back(center);
+	// }
 	
+	// std::vector<Rect> approved_viola_ellipse;
+	// for(int i = 0; i < violaoutput.size(); i++)
+	// {
+	// 	Rect r = violaoutput[i];
+	// 	// printf("here2\n");
+	// 	Point center = (r.tl() + r.br()) * 0.5;
+	// 	// printf("%d\n", line_intersections.size());
+	// 	for(int l = 0; l < ellipse_centers.size(); l++)
+	// 	{	
+	// 		double distance = cv::norm(center - ellipse_centers[l]);
+	// 		if(distance < 10 && std::find(approved_viola_final.begin(), approved_viola_final.end(), violaoutput[i]) != approved_viola_final.end())
+	// 		{
+	// 			approved_viola_ellipse.push_back(violaoutput[i]);
+	// 		}
+	// 		// circle(img, line_intersections[l], 1, Scalar(245, 66, 197), 2);
+	// 	}
+	// }
+
+	// for(int i = 0; i < approved_viola_ellipse.size(); i++)
+	// {
+	// 	std::cout << "value of i in approved vio is : " << approved_viola_ellipse[i]<< std::endl;
+	// 	rectangle(allframe, approved_viola_ellipse[i], Scalar(0, 255, 0), 2);
+	// }
 
 	for(int i = 0; i < approved_viola_final.size(); i++)
 	{
-		std::cout << "value of i in approved vio is : " << approved_viola_final[i]<< std::endl;
 		rectangle(allframe, approved_viola_final[i], Scalar(0, 255, 0), 2);
 	}
-    cv::imwrite("all.jpg", allframe);
+
+	const int img_num = 0;
+
+	for(int i = 0; i < ground_darts(img_num).size(); i++)
+	{
+		rectangle(allframe, ground_darts(img_num)[i], Scalar(0, 0, 255), 2);
+	}
+
+	f1_score(approved_viola_final, img_num);
+	// f1_score(approved_viola_ellipse, img_num);
+
+	cv::imwrite("dart0_output.jpg", allframe);
     return 0;
 }
  
@@ -204,60 +226,12 @@ vector <Rect> detectAndDisplay1(Mat frame)
     // 3. Print number of Faces found
     std::cout << faces.size() << std::endl;
  
-    // Printing all the detected rectangles
-    // for (int x = 0; x < faces.size(); x++)
-    // {
-    //  std::cout << faces[x] << std::endl;
-    // }
- 
     // 4. Draw box around faces found
-    printf("draw boxes before\n");
     for (int i = 0; i < faces.size(); i++)
     {
-        rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar(0, 255, 0), 2);
-        std::cout << faces[i].height << std::endl;      
+        rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar(0, 255, 0), 2);  
     }
-    printf("draw boxes after\n");
     return faces;
- 
-}
- 
-void f1_score()
-{
-    // std::vector<Rect> detected = detected_darts(15);
-    // std::vector<Rect> ground = ground_darts(15);
-    std::vector<Rect> detected;
-    std::vector<Rect> ground;
-    float actual_hits = 0;
- 
-    for (int d = 0; d < detected.size(); ++d)
-    {
-        for (int g = 0; g < ground.size(); ++g)
-        {  
-            float _intersection = (ground[g] & detected[d]).area();
-            float _union = (ground[g] | detected[d]).area();
- 
-            float iou = _intersection/_union;
-            if(iou > 0.59)
-            {
-                actual_hits += 1;
-            }
-            std::cout << "IOU: " << iou << std::endl;
-        }
-    }
-    float tpr = actual_hits / ground.size();
-    float fpr = 1 - tpr;
-    float fnr = actual_hits - ground.size();
-    float precision = actual_hits / detected.size();
-    float f1 = 2 * tpr * precision / (precision + tpr);
- 
-    std::cout << "Actual Faces: " << ground.size() << std::endl;
-    std::cout << "Detected Faces: " << detected.size() << std::endl;
-    std::cout << "Actual Hits: " << actual_hits << std::endl;
-    std::cout << "TPR: " << tpr << std::endl;
-    std::cout << "FPR: " << fpr << std::endl;
-    std::cout << "FNR: " << fnr << std::endl;
-    std::cout << "F1-Score: " << f1 << std::endl;
 }
 
 /** Function to get the detected rectangles*/
@@ -538,36 +512,10 @@ std::vector<Rect> ground_darts(int n) {
 	return result;
 }
 
-void hough_viola(std::vector <Rect> viodetected, std::vector <Rect> houghdetected,Mat frame){
-    for (int i=0; i < viodetected.size(); ++i){
-        for (int j = 0; j<houghdetected.size();++j){
-            float _intersection = (viodetected[i] & houghdetected.front()).area();
-			float _union = (viodetected[i] | houghdetected[j]).area();
-            float iou = _intersection/_union;
-            // std::cout << "houghdet_in hough_viola : " << houghdetected[j] << std::endl;
-            // std::cout << "viodet in hough_viola : " << viodetected[i] << std::endl;
-            std::cout << "iou : " << iou<< std::endl;
-            if(iou > 0.6)
-			{
-                cv::rectangle(frame,houghdetected[j],Scalar(0,255,0),2);
-			}
-
-
-        }
-    }
-}
-
-float calc_iou(Rect a, Rect b)
-{
-    float i = (a & b).area();
-    float u = (a | b).area();
-    return i/u;
-}
-
 std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::vector<Point> hough_centers, std::vector<Point> line_intersections)
 {
-	std::vector<Rect> approved_viola;
-	std::vector<Rect> approved_viola2;
+	std::vector<Rect> approved_viola;		// storing best Viola from hough circles
+	std::vector<Rect> approved_viola2;		// storing best Viola from hough lines after hough circles
 	
 	/*
 		First go through all violas
@@ -585,14 +533,14 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 		Rect r = viola_detected[i];
 		Point center = (r.tl() + r.br()) * 0.5;
 
-		circle(img, center, 1, Scalar(255, 255, 0), 2);
+		// circle(img, center, 1, Scalar(255, 255, 0), 2);
 		for(int j = 0; j < hough_centers.size(); j++)
 		{	
 			double distance = cv::norm(center - hough_centers[j]);
 			if(distance < BoxDistance)
 			{
 				approved_viola.push_back(viola_detected[i]);
-				circle(img, hough_centers[j], 1, Scalar(255, 0, 0), 2);
+				// circle(img, hough_centers[j], 1, Scalar(255, 0, 0), 2);
 			}
 		}
 	}
@@ -606,11 +554,11 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 			if(distance < 20)
 			{
 				approved_viola2.push_back(approved_viola[k]);
-				circle(img, line_intersections[l], 1, Scalar(245, 66, 197), 2);
-
+				// circle(img, line_intersections[l], 1, Scalar(245, 66, 197), 2);
 			}
 		}
 	}
+
 	if(approved_viola2.size() == 0)
 	{	
 		if (approved_viola.size() != 0)
@@ -622,11 +570,8 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 			std::cout << "Chosen Hough = LINES ONLY" << std::endl;
 			for(int k = 0; k < viola_detected.size(); k++)
 			{	
-				// printf("here1\n");
 				Rect r = viola_detected[k];
-				// printf("here2\n");
 				Point center = (r.tl() + r.br()) * 0.5;
-				// printf("%d\n", line_intersections.size());
 				for(int l = 0; l < line_intersections.size(); l++)
 				{	
 					double distance = cv::norm(center - line_intersections[l]);
@@ -634,7 +579,7 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 					{
 						approved_viola2.push_back(viola_detected[k]);
 					}
-					circle(img, line_intersections[l], 1, Scalar(245, 66, 197), 2);
+					// circle(img, line_intersections[l], 1, Scalar(245, 66, 197), 2);
 				}
 			}
 			return approved_viola2;
@@ -647,12 +592,36 @@ std::vector<Rect> viola_hough(Mat img, std::vector<Rect> viola_detected, std::ve
 	}
 }
 
-// int **create2DArray(int width, int height)
-// {
-//     int **H = (int **) malloc(sizeof(int *)*width);
-//     for(int i = 0; i < width; i++)
-//     {
-//         H[i] = (int *) malloc(height * sizeof(int));
-//     }
-//     return H;
-// }
+void f1_score(std::vector<Rect> approved_viola, int img)
+{
+    std::vector<Rect> ground = ground_darts(img);
+    float actual_hits = 0;
+ 
+    for (int d = 0; d < approved_viola.size(); ++d)
+    {
+        for (int g = 0; g < ground.size(); ++g)
+        {  
+            float _intersection = (ground[g] & approved_viola[d]).area();
+            float _union = (ground[g] | approved_viola[d]).area();
+            float iou = _intersection/_union;
+            if(iou > 0.3)
+            {
+                actual_hits += 1;
+            }
+            std::cout << "IOU: " << iou << std::endl;
+        }
+    }
+    float tpr = actual_hits / ground.size();
+    float fpr = 1 - tpr;
+    float fnr = actual_hits - ground.size();
+    float precision = actual_hits / approved_viola.size();
+    float f1 = 2 * tpr * precision / (precision + tpr);
+ 
+    std::cout << "Actual Faces: " << ground.size() << std::endl;
+    std::cout << "Detected Faces: " << approved_viola.size() << std::endl;
+    std::cout << "Actual Hits: " << actual_hits << std::endl;
+    std::cout << "TPR: " << tpr << std::endl;
+    std::cout << "FPR: " << fpr << std::endl;
+    std::cout << "FNR: " << fnr << std::endl;
+    std::cout << "F1-Score: " << f1 << std::endl;
+}
